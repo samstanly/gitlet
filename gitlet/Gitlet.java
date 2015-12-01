@@ -49,13 +49,16 @@ public class Gitlet {
 
 	/** Adds files to storing directory. */
 	static void add(String name) {
-		File filename = new File(System.getProperty("user.dir") + name);
+		// File filename = new File(System.getProperty("user.dir") + name);
+		File filename = new File(name);
 		if (!filename.exists() || filename.isDirectory()) {
 			System.out.println("File does not exist");
 			return;
 		} else {
 			try {
-				File fileToStaging = Files.copy(filename.getPath(), Metadata.getDirectory() + "staging/",
+				// File fileToStaging = Files.copy(filename.getPath(), Metadata.getDirectory() + "staging/",
+				// 	StandardCopyOption.REPLACE_EXISTING);
+				File fileToStaging = Files.copy(filename.getPath(), "/.gitlet/staging/" + filename.getPath(),
 					StandardCopyOption.REPLACE_EXISTING);
 			} catch (IOException e) {
 				error("Cannot add file.");
