@@ -18,7 +18,18 @@ import ucb.util.CommandArgs;
 
 public class Metadata implements Serializable {
 	protected String HEAD;
-  static Commit getHead() {
-  	
+  	static Commit getHead() {
+  		try
+      	{
+        	FileInputStream fileIn = new FileInputStream(HEAD);
+        	ObjectInputStream in = new ObjectInputStream(fileIn);
+         	h = (Commit) in.readObject();
+         	in.close();
+         	fileIn.close();
+      	} catch(IOException i) {
+      		i.printStackTrace();
+         	return null;
+      	}
+      	return h;
   }
 }
