@@ -23,10 +23,11 @@ import java.nio.file.StandardCopyOption;
 private String commitMsg;
 /** The commit timestamp. */
 private String commitTime;
-/** The commit directory. */
-private String directory;
+/** The commit path. */
+private String path;
 /** The parent and child SHA values. */
 private String parentSHA, childSHA;
+
 
 public class Commit implements Serializable {
 	/**
@@ -34,14 +35,14 @@ public class Commit implements Serializable {
 	 * MSG, the SHA of the parent commit, PARENTSHA, and
 	 * the SHA of the child commit, CHILDSHA.
 	 */
-	public Commit(String commitMsg, String parentSHA, String childSHA) {
+	public Commit(String commitMsg, String path, String parentSHA, String childSHA) {
 		this.commitMsg = commitMsg;
+		this.path = path;
 		this.parentSHA = parentSHA;
 		this.childSHA = childSHA;
         SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss");
         Date date = new Date();
         commitTime = sdf.format(date);
-        directory = null;
 	}
 
 	/** Returns the commit message. */
@@ -62,6 +63,11 @@ public class Commit implements Serializable {
 	/** Returns the child commit SHA. */
 	public String getChildSHA() {
 		return childSHA;
+	}
+
+	/** Returns the commit path. */
+	public String getPath() {
+		return path;
 	}
 
 	public void printLog() {
