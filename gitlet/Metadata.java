@@ -17,7 +17,22 @@ import java.io.InputStreamReader;
 import ucb.util.CommandArgs;
 
 public class Metadata implements Serializable {
-	protected String HEAD;
+	protected static String HEAD;
+
+	protected static String GITLET_DIRECTORY;
+
+	static void setDirectory(String path) {
+		GITLET_DIRECTORY = path;
+	}
+
+	static String getWorking(String path) {
+		return GITLET_DIRECTORY;
+	}
+
+	static void setHead(Commit initial) {
+		HEAD = initial.getPath();
+	}
+
   	static Commit getHead() {
   		try
       	{

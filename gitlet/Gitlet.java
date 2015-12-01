@@ -15,25 +15,29 @@ import java.util.HashMap;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import ucb.util.CommandArgs;
+import java.io.Files;
 
 public class Gitlet {
+	
 	static void init() {
-		String curr = System.getProperty("user.dir");
-    	File dir = new File(curr + ".gitlet");
+		Metadata.setDirectory(System.getProperty("user.dir") + ".gitlet/");
+    	File dir = new File(Metadata.getDirectory());
     	boolean e = dir.mkdir();
     	if (!e) {
     		System.out.println("gitlet version-control system already exists in the current directory");
       	} else {
-        //initial commit
-        //call commit
-        	
+      		Commit initial = new Commit(path);
+      		Metadata.setHead(initial);
+      		File dir = new File(Metadata.getDirectory() + "staging/");
       	}
 	}
 	static void add(String name) {
-		File filename = new File(name);
+		File filename = new File(System.getProperty("user.dir") + name);
 		if (!filename.exists()) {
 			System.out.println("File does not exist");
 			return;
+		} else {
+			Files.copy(filename.getPath(), Metadata.getDirectory() + "staging/");
 		}
 		
 	}
