@@ -18,7 +18,7 @@ import ucb.util.CommandArgs;
 
 public class Metadata implements Serializable {
 	protected String HEAD;
-  static Commit getHead() {
+  	static Commit getHead() {
   	
-  }
+  	}
 }
