@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.Serializable;
 import java.util.Date;
 import java.io.FileReader;
@@ -11,10 +12,12 @@ import java.io.FileWriter;
 import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import ucb.util.CommandArgs;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 
 /** Driver class for Gitlet, the tiny stupid version-control system.
@@ -25,6 +28,8 @@ public class Main {
     /** Usage: java gitlet.Main ARGS, where ARGS contains
      *  <COMMAND> <OPERAND> .... */
 
+    private static Gitlet gitlet;
+
     public static void main(String... args) {
       if (args.length == 0) {
         System.out.println("Please enter a command.");
@@ -32,60 +37,49 @@ public class Main {
       }
       switch (args[0]) {
       	case "init":
-        	String curr = System.getProperty("user.dir");
-        	File dir = new File(curr + "/.gitlet");
-        	boolean e = dir.mkdir();
-        	if (!e) {
-        		System.out.println("gitlet version-control system already exists in the current directory");
-          } else {
-            //initial commit
-            //call commit
-          }
+          gitlet.init();
+          break;
         case "add":
         	//file name args[1] save to staging area if not in blobs
         	//iterate through to check if its already there or not
+          gitlet.add(arg[1]);
+          break;
         case "commit":
         	//commit message
+          break;
         case "rm": 
         	//file name
+          break;
         case "log":
+          break;
         case "global-log":
+          break;
         case "find":
         	//commit message
+          break;
         case "status":
+          break;
         case "checkout"
           	//file name
           	//commit id and file name
           	//branch name
+            break;
         case "branch":
         	//branch name
+          break;
         case "rm-branch":
         	//branch name
+          break;
         case "reset":
         	//commit id
+          break;
         case "merge":
         	//branch name
+          break;
         default:
-        	System.out.println(" No command with that name exists.");
+        	System.out.println("No command with that name exists.");
+          break;
       }
-    }
-
-    /** Print the contents of the resource named NAME on the standard error.
-     *  The resource can be any file in the class directory.  File
-     *  loa/foo.txt, for example, is named simply "loa/foo.txt". */
-    static void printResource(String name) {
-        try {
-            InputStream resourceStream =
-                Main.class.getClassLoader().getResourceAsStream(name);
-            BufferedReader str =
-                new BufferedReader(new InputStreamReader(resourceStream));
-            for (String s = str.readLine(); s != null; s = str.readLine())  {
-                System.err.println(s);
-            }
-            str.close();
-        } catch (IOException excp) {
-            System.out.println("No help found.");
-        }
     }
 
     /** Report an error and exit program with EXIT as the
