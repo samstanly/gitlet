@@ -42,7 +42,7 @@ public class Main {
         case "add":
         	//file name args[1] save to staging area if not in blobs
         	//iterate through to check if its already there or not
-          gitlet.add(arg[1]);
+          gitlet.add(args[1]);
           break;
         case "commit":
         	//commit message
@@ -59,7 +59,7 @@ public class Main {
           break;
         case "status":
           break;
-        case "checkout"
+        case "checkout":
           	//file name
           	//commit id and file name
           	//branch name

@@ -18,28 +18,27 @@ import java.io.InputStreamReader;
 import ucb.util.CommandArgs;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-
-/** The commit message. */
-private String commitMsg;
-/** The commit timestamp. */
-private String commitTime;
-/** The commit path. */
-private String path;
-/** The parent and child SHA values. */
-private String parentSHA, childSHA;
+import java.util.HashMap;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 
 
 public class Commit implements Serializable {
+
+	/** The commit message. */
+	private String commitMsg;
+	/** The commit timestamp. */
+	private String commitTime;
+	protected HashMap<String, Integer> fileMap;
+
 	/**
 	 * Constructor for Commit object with commit message
 	 * MSG, the SHA of the parent commit, PARENTSHA, and
 	 * the SHA of the child commit, CHILDSHA.
 	 */
-	public Commit(String commitMsg, String path, String parentSHA, String childSHA) {
+	public Commit(String commitMsg) {
 		this.commitMsg = commitMsg;
-		this.path = path;
-		this.parentSHA = parentSHA;
-		this.childSHA = childSHA;
         SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss");
         Date date = new Date();
         commitTime = sdf.format(date);
@@ -55,33 +54,8 @@ public class Commit implements Serializable {
 		return commitTime;
 	}
 
-	/** Returns the parent commit SHA. */
-	public String getParentSHA() {
-		return parentSHA;
-	}
 
-	/** Returns the child commit SHA. */
-	public String getChildSHA() {
-		return childSHA;
-	}
 
-	/** Returns the commit path. */
-	public String getPath() {
-		return path;
-	}
-
-	public void printLog() {
-		System.out.println("===");
-		System.out.println("Commit " + childID);
-		System.out.println(commitTime);
-		System.out.println(commitMsg);
-		// print previous commit logs too
-		// if (prevCommit != null)
-		// {
-		// 	System.out.println();
-		// 	prevCommit.printLog();
-		// }
-	}
 
 
 }

@@ -3,6 +3,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectInput;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.Serializable;
@@ -18,53 +21,82 @@ import java.io.InputStreamReader;
 import ucb.util.CommandArgs;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Gitlet {
-	
-	protected Metadata currCommit;
-	protected HashSet<String> staged, untracked;
+	protected static HashSet<String> staged = new HashSet<String>();
+	protected static HashSet<String> untracked;
 
-	/** Gitlet constructor. */
-	public Gitlet() {
-		Metadata currCommit;
-		HashSet<String> staged;
-		HashSet<String> untracked;
+	private static void serialWrite(Object obj, String name) {
+		try {
+			ObjectOutput output = new ObjectOutputStream(new FileOutputStream(name));
+			output.writeObject(obj);
+			output.close();
+		} catch (IOException e) {
+			System.out.println("Error in serialWrite.");
+		}
+	}
+
+	private static Object serialRead(String name) {
+		Object obj = null;
+		try {
+			ObjectInput input = new ObjectInputStream(new FileInputStream(name));
+			try {
+				obj = (Object) input.readObject();
+				input.close();
+			} catch (ClassNotFoundException e2) {
+				input.close();
+				System.out.println("ClassNotFoundException in serialRead");
+			}
+		} catch (IOException e) {
+			System.out.println("Error in serialRead.");
+		}
+		return obj;
 	}
 
 	/** Initalizes gitlet. */
 	static void init() {
-		Metadata.setDirectory(System.getProperty("user.dir") + ".gitlet/");
-    	File dir = new File(Metadata.getDirectory());
+  		File dir = new File(".gitlet/");
     	boolean e = dir.mkdir();
     	if (!e) {
     		System.out.println("gitlet version-control system already exists in the current directory");
-      	} else {
-      		//Commit initial = new Commit(path);
-      		Commit initial = new Commit("initial commit", 0, 0);
-      		//Creates single branch called master in metadata?
-      		Metadata.setHead(initial);
-      		File dir = new File(Metadata.getDirectory() + "staging/");
-      	}
+    	}
+  		Commit initial = new Commit("initial commit");
+  		Branch masterBranch = new Branch("master", initial);
+  		// Branch.addCommit(Utils.sha1(initial));
+  		Branch.addCommit(Integer.toString(initial.hashCode()));
+  		File stageDir = new File(".gitlet/staging/");
+  		stageDir.mkdir();
 	}
 
 	/** Adds files to storing directory. */
 	static void add(String name) {
-		// File filename = new File(System.getProperty("user.dir") + name);
-		File filename = new File(name);
-		if (!filename.exists() || filename.isDirectory()) {
-			System.out.println("File does not exist");
-			return;
-		} else {
-			try {
-				// File fileToStaging = Files.copy(filename.getPath(), Metadata.getDirectory() + "staging/",
-				// 	StandardCopyOption.REPLACE_EXISTING);
-				File fileToStaging = Files.copy(filename.getPath(), "/.gitlet/staging/" + filename.getPath(),
-					StandardCopyOption.REPLACE_EXISTING);
-			} catch (IOException e) {
-				error("Cannot add file.");
+		File file = new File(name);
+		if (fileModified(file, name)) {
+			if (!file.exists() || file.isDirectory()) {
+				System.out.println("File does not exist");
+				return;
+			} else {
+				staged.add(name);
 			}
 		}
-		
+	}
+
+
+
+	static boolean fileModified(File file, String name) {
+		//tell if the file is modified from previous commit;
+		int hash = file.hashCode();
+		//if hash == get commit value
+		Commit previous = Branch.getHeadCommit();
+		if (!previous.fileMap.containsKey(name)) {
+			return false;
+		} else if (previous.fileMap.get(name).equals(hash)) {
+			untracked.add(name);
+			return false;
+		}
+		return true;
 	}
 
 	/** 
@@ -82,8 +114,8 @@ public class Gitlet {
 			System.out.println(s);
 
 		System.out.println("\n=== Removed Files ===");
-		for (String r : removed)
-			System.out.println(r);
+		// for (String r : removed)
+		// 	System.out.println(r);
 
 		System.out.println("\n=== Modifications Not Staged For Commit ===");
 		//junk.txt (deleted)
@@ -96,7 +128,31 @@ public class Gitlet {
 
 	/** Commits files to commit directory. */
 	public void commit(String msg) {
-		//Commit c = new Commit(msg, parentSHA, childSHA);
+		Commit c = new Commit(msg);
+		for (String name : staged) {
+			try {
+				File file = new File(name);
+				Integer hash = file.hashCode();
+				Files.copy(file.toPath(), Paths.get("/.gitlet/blobs/" + name + hash),
+					StandardCopyOption.REPLACE_EXISTING);
+				c.fileMap.put(name, hash);
+
+			} catch (IOException e) {
+				System.out.println("Cannot add file.");
+			}
+        }
+
+
+        Commit previous = Branch.getHeadCommit();
+
+        for (String name : previous.fileMap.keySet()) {
+        		File file = new File(name);
+				Integer hash = file.hashCode();
+        	if (!untracked.contains(name)) {
+        			c.fileMap.put(name, hash);
+        		}	
+        }
+
 	}
 
 	/** Untrack file and will not be included in the next commit. */
@@ -106,7 +162,7 @@ public class Gitlet {
 
 	/** Prints all the commits with time/date and message. */
 	public void log() {
-		commit.printLog();
+		// Branch.printLog();
 	}
 
 	/** Displays information about all commits. Order doesn't matter. */
@@ -124,6 +180,11 @@ public class Gitlet {
 
 	/** Checkouts using file name, commit id, or branch name. */
 	public void checkout() {
+
+	}
+
+	/** Creates a new branch with the given name. */
+	public void branch(String name) {
 
 	}
 
