@@ -61,6 +61,7 @@ public class Main {
           Gitlet.log();
           break;
         case "global-log":
+          Gitlet.globalLog();
           break;
         case "find":
         	//commit message

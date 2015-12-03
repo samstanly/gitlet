@@ -31,10 +31,14 @@ public class CommitTree implements Serializable {
 	protected Commit currCommit;
 	// protected LinkedList<String> commitList = new LinkedList<String>();
 
+	protected String currBranch;
+
 	protected HashSet<String> staged = new HashSet<String>();
 	protected HashSet<String> untracked =  new HashSet<String>();
 
 	protected HashMap<String, String> branches = new HashMap<String, String>();
+
+
 
 	protected static void serialWrite(CommitTree b) {
 		try {

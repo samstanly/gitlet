@@ -27,8 +27,6 @@ import java.nio.file.FileAlreadyExistsException;
 
 public class Gitlet implements Serializable {
 
-	// static boolean initialized = false;
-
 	// static CommitTree tree = null;
 
 	// static void startUp() {
@@ -58,6 +56,8 @@ public class Gitlet implements Serializable {
 
 	  		tree.head = Commit.commitToSha(initial);
 	  		tree.branches.put("master", tree.head);
+	  		tree.currBranch = "master";
+	  		// CommitTree.gitletInitialized = true;
 	  		Commit.serialWrite(initial, tree.head);
 	  		CommitTree.serialWrite(tree);
     		
@@ -193,12 +193,14 @@ public class Gitlet implements Serializable {
 			} catch (IOException e) {
 				if (!(e instanceof FileAlreadyExistsException)) {
 					System.out.println("Error moving file to blob");
+					return;
 				}
 			}
 			try {
 				Files.delete(Paths.get(".gitlet/staged/" + name));
 			} catch (IOException e) {
 				System.out.println("Error deleting from staging");
+				return;
 			}
 		}
 
@@ -222,7 +224,7 @@ public class Gitlet implements Serializable {
 
 
 		tree.head = Commit.commitToSha(c);
-
+		tree.branches.put(tree.currBranch, tree.head);
 		tree.staged = new HashSet<String>();
 		tree.untracked = new HashSet<String>();
 
@@ -297,7 +299,27 @@ public class Gitlet implements Serializable {
 	}
 
 	/** Displays information about all commits. Order doesn't matter. */
-	public void globalLog() {
+	public static void globalLog() {
+		HashSet<String> printed = new HashSet<String>();
+		CommitTree tree = CommitTree.serialRead(); //TREE
+
+		for (String branchSHA : tree.branches.values()) {
+			Commit curr = Commit.shaToCommit(branchSHA);
+			String currSHA = Commit.commitToSha(curr);
+
+			while (curr.parentSHA != null && !printed.contains(currSHA)) {
+				curr.print(currSHA);
+				printed.add(currSHA);
+				curr = Commit.shaToCommit(curr.parentSHA);
+				currSHA = Commit.commitToSha(curr);
+			}
+			currSHA = Commit.commitToSha(curr);
+			if (!printed.contains(currSHA)) {
+				curr.print(currSHA);
+				printed.add(currSHA);
+			}
+		}
+
 
 	}
 
