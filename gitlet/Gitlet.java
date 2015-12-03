@@ -36,17 +36,20 @@ public class Gitlet implements Serializable {
     		System.out.println("gitlet version-control system already exists in the current directory");
     	}
   		Commit initial = new Commit("initial commit");
-  		Branch masterBranch = new Branch("master", initial);
-  		masterBranch.head = Integer.toString(initial.hashCode());
-  		// Branch.addCommit(Utils.sha1(initial));
+  		CommitTree tree = new CommitTree(initial);
+
+
+
+  		// CommitTree.addCommit(Utils.sha1(initial));
   		File commitDir = new File(".gitlet/commits/");
   		File blobDir = new File(".gitlet/blobs/");
   		commitDir.mkdir();
   		blobDir.mkdir();
 
-  		masterBranch.addCommit(Integer.toString(initial.hashCode()));
-  		Commit.serialWrite(initial, Integer.toString(initial.hashCode()));
-  		Branch.serialWrite(masterBranch);
+  		tree.head = Commit.commitToSha(initial);
+  		tree.commitList.addFirst(tree.head);
+  		Commit.serialWrite(initial, tree.head);
+  		CommitTree.serialWrite(tree);
 
 	}
 
@@ -65,16 +68,16 @@ public class Gitlet implements Serializable {
 
 		File file = new File(name);
 		if (fileModified(file, name)) {
-			Branch masterBranch = Branch.serialRead();
-			masterBranch.staged.add(name);
-			Branch.serialWrite(masterBranch);
+			CommitTree tree = CommitTree.serialRead();
+			tree.staged.add(name);
+			CommitTree.serialWrite(tree);
 			
 		}
 
 
 		// try {
 		// 	Files.copy(Paths.get(name), Paths.get(".gitlet/staging/" + name));
-		// 	masterBranch.staged.add(name);
+		// 	tree.staged.add(name);
 		// } catch (IOException e) {
 		// 	System.out.println(e);
 		// }
@@ -83,16 +86,18 @@ public class Gitlet implements Serializable {
 	}
 
 	static boolean fileModified(File file, String name) {
-		Branch masterBranch = Branch.serialRead();
+		CommitTree tree = CommitTree.serialRead();
 
-		int hash = file.hashCode();
-		Commit head = masterBranch.getHeadCommit();
+		byte[] b = Utils.readContents(file);
+		String sha = Utils.sha1(b);
+		// int hash = file.hashCode();
+		Commit head = tree.getHeadCommit();
 
 		if (head.fileMap.containsKey(name)) {
-			if (head.fileMap.get(name).equals(hash)) {
+			if (head.fileMap.get(name).equals(sha)) {
 				return false;
 			} else {
-				masterBranch.untracked.add(name);
+				tree.untracked.add(name);
 				return true;
 			}
 		}
@@ -103,11 +108,12 @@ public class Gitlet implements Serializable {
 
 
 
+
 	// static boolean fileModified(File file, String name) {
 	// 	//tell if the file is modified from previous commit;
 	// 	int hash = file.hashCode();
 	// 	//if hash == get commit value
-	// 	Commit previous = Branch.getHeadCommit();
+	// 	Commit previous = CommitTree.getHeadCommit();
 	// 	if (!previous.fileMap.containsKey(name)) {
 	// 		return false;
 	// 	} else if (previous.fileMap.get(name).equals(hash)) {
@@ -123,8 +129,8 @@ public class Gitlet implements Serializable {
 	 */
 	public void status() {
 
-		System.out.println("=== Branches ===");
-		//System.out.println(("*" + currBranch));
+		System.out.println("=== CommitTreees ===");
+		//System.out.println(("*" + currCommitTree));
 		//print branches from tree of commits
 
 		System.out.println("\n=== Staged Files ===");
@@ -145,7 +151,49 @@ public class Gitlet implements Serializable {
 	}
 
 	/** Commits files to commit directory. */
-	public void commit(String msg) {
+	static void commit(String msg) {
+		CommitTree tree = CommitTree.serialRead();
+
+
+		Commit c = new Commit(msg);
+		for (String name : tree.staged) {
+			File file = new File(name);
+			byte[] b = Utils.readContents(file);
+			String sha = Utils.sha1(b);
+			c.fileMap.put(name, sha);
+
+			try {
+				Files.copy(Paths.get(name), Paths.get(".gitlet/blobs/" + sha));
+			} catch (IOException e) {
+				System.out.println(e);
+			}
+		}
+
+
+		Commit head = tree.getHeadCommit();
+
+		for (String name : head.fileMap.keySet()) {
+			if (!tree.untracked.contains(name)) {
+				File file = new File(name);
+				byte[] b = Utils.readContents(file);
+				String sha = Utils.sha1(b);
+				c.fileMap.put(name, sha);
+
+				try {
+					Files.copy(Paths.get(name), Paths.get(".gitlet/blobs/" + sha));
+				} catch (IOException e) {
+					System.out.println(e);
+				}
+			}
+		}
+
+
+		tree.head = Commit.commitToSha(c);
+		tree.commitList.addFirst(tree.head);
+		Commit.serialWrite(c, tree.head);
+  		CommitTree.serialWrite(tree);
+
+
 		// Commit c = new Commit(msg);
 		// for (String name : staged) {
 		// 	try {
@@ -161,7 +209,7 @@ public class Gitlet implements Serializable {
   //       }
 
 
-  //       Commit previous = Branch.getHeadCommit();
+  //       Commit previous = CommitTree.getHeadCommit();
 
   //       for (String name : previous.fileMap.keySet()) {
   //       		File file = new File(name);
@@ -180,7 +228,7 @@ public class Gitlet implements Serializable {
 
 	/** Prints all the commits with time/date and message. */
 	public void log() {
-		// Branch.printLog();
+		// CommitTree.printLog();
 	}
 
 	/** Displays information about all commits. Order doesn't matter. */
@@ -207,7 +255,7 @@ public class Gitlet implements Serializable {
 	}
 
 	/** Deletes branch with given name. */
-	public void removeBranch(Branch b) {
+	public void removeCommitTree(CommitTree b) {
 
 	}
 
@@ -220,7 +268,7 @@ public class Gitlet implements Serializable {
 	}
 
 	/** Merge files from given branch into current branch. */
-	public void merge(Branch b) {
+	public void merge(CommitTree b) {
 
 	}
 }

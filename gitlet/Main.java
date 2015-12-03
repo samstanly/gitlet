@@ -38,12 +38,15 @@ public class Main {
           Gitlet.init();
           break;
         case "add":
-        	//file name args[1] save to staging area if not in blobs
-        	//iterate through to check if its already there or not
           Gitlet.add(args[1]);
           break;
         case "commit":
-        	//commit message
+          if (args.length == 1) {
+            System.out.println("Please enter a commit message.");
+          }
+          if (args.length == 2) {
+            Gitlet.commit(args[1]);
+          }
           break;
         case "rm": 
         	//file name

@@ -25,16 +25,15 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectInput;
 
-public class Branch implements Serializable {
+public class CommitTree implements Serializable {
 	protected String head;
-	protected String name;
 	protected Commit currCommit;
 	protected LinkedList<String> commitList = new LinkedList<String>();
 
 	protected HashSet<String> staged = new HashSet<String>();
-	protected HashSet<String> untracked;
+	protected HashSet<String> untracked =  new HashSet<String>();
 
-	protected static void serialWrite(Branch b) {
+	protected static void serialWrite(CommitTree b) {
 		try {
 			ObjectOutput output = new ObjectOutputStream(new FileOutputStream(".gitlet/branch.ser"));
 			output.writeObject(b);
@@ -44,13 +43,13 @@ public class Branch implements Serializable {
 		}
 	}
 
-	protected static Branch serialRead() {
-		Branch b = null;
+	protected static CommitTree serialRead() {
+		CommitTree b = null;
 		try {
 			ObjectInput input = new ObjectInputStream(new FileInputStream(".gitlet/branch.ser"));
 
 			try {
-				b = (Branch) input.readObject();
+				b = (CommitTree) input.readObject();
 				System.out.println(b);
 				input.close();
 			} catch (ClassNotFoundException e2) {
@@ -59,55 +58,29 @@ public class Branch implements Serializable {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println("Error in Branch serialRead.");
+			System.out.println("Error in CommitTree serialRead.");
 
 		}
 		return b;
 	}
 
-	Branch(String name, Commit currCommit) {
-		this.name = name;
+	CommitTree(Commit currCommit) {
 		this.currCommit = currCommit;
 	}
 
-	Commit shaToCommit(String sha) {
-		// System.out.println("we" + sha);
-		// Commit h = null;
-		// try {
-	 //      	FileInputStream fileIn = new FileInputStream(sha);
-	 //      	ObjectInputStream in = new ObjectInputStream(fileIn);
-	 //       	h = (Commit) in.readObject();
-	 //       	in.close();
-	 //       	fileIn.close();
-  //   	} catch(IOException i) {
-  //   		i.printStackTrace();
-  //      		return null;
-  //   	} catch (ClassNotFoundException i) {
-  //   		i.printStackTrace();
-  //      		return null;
-  //   	}
-  //   	return h;
-
-		return Commit.serialRead(sha);
-
-	}
 
 	Commit getHeadCommit() {
 		System.out.println(head);
-		return shaToCommit(head);
+		return Commit.shaToCommit(head);
 	}
 
-	void addCommit(String commitSHA) {
-		System.out.println(commitSHA);
-		commitList.addFirst(commitSHA);
-		head = commitSHA;
-	}
+
 
 
 
 	public void printLog() {
 		for (String commitSHA : commitList) {
-			Commit c = shaToCommit(commitSHA);
+			Commit c = Commit.shaToCommit(commitSHA);
 			System.out.println("===");
 			System.out.println("Commit " + commitSHA);
 			System.out.println(c.getCommitTime());

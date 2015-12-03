@@ -26,7 +26,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectInput;
-
+import java.io.ByteArrayOutputStream;
 
 public class Commit implements Serializable {
 
@@ -35,7 +35,7 @@ public class Commit implements Serializable {
 	/** The commit timestamp. */
 	private String commitTime;
 
-	protected HashMap<String, Integer> fileMap = new HashMap<String, Integer>();
+	protected HashMap<String, String> fileMap = new HashMap<String, String>();
 
 	/**
 	 * Constructor for Commit object with commit message
@@ -81,6 +81,32 @@ public class Commit implements Serializable {
 			e.printStackTrace();
 		}
 		return c;
+	}
+
+	private static byte[] convertToBytes(Object object) throws IOException {
+	    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	         ObjectOutput out = new ObjectOutputStream(bos)) {
+	        out.writeObject(object);
+	        return bos.toByteArray();
+	    } catch (IOException e) {
+	    	System.out.println("convert error");
+	    	return null;
+	    }
+	}
+
+	public static String commitToSha(Commit c) {
+		try {
+			byte[] b = convertToBytes(c);
+			return Utils.sha1(b);
+		} catch (IOException e) {
+			System.out.println("commit to sha error");
+			return null;
+		}
+	}
+
+	protected static Commit shaToCommit(String sha) {
+		return serialRead(sha);
+
 	}
 
 	/** Returns the commit message. */
