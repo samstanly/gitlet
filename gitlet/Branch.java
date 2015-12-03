@@ -93,6 +93,7 @@ public class Branch implements Serializable {
 	}
 
 	Commit getHeadCommit() {
+		System.out.println(head);
 		return shaToCommit(head);
 	}
 
