@@ -22,6 +22,9 @@ import java.util.HashMap;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutput;
+
 
 
 public class Commit implements Serializable {
@@ -54,6 +57,26 @@ public class Commit implements Serializable {
 		return commitTime;
 	}
 
+	private byte[] convertToBytes(Object object) throws IOException {
+	    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	         ObjectOutput out = new ObjectOutputStream(bos)) {
+	        out.writeObject(object);
+	        return bos.toByteArray();
+	    } catch (IOException e) {
+	    	System.out.println("convert error");
+	    	return null;
+	    }
+	}
+
+	public String commitToSha (Commit c) {
+		try {
+			byte[] b = convertToBytes(c);
+			return Utils.sha1(b);
+		} catch (IOException e) {
+			System.out.println("commit to sha error");
+			return null;
+		}
+	}
 
 
 
