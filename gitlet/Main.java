@@ -28,8 +28,6 @@ public class Main {
     /** Usage: java gitlet.Main ARGS, where ARGS contains
      *  <COMMAND> <OPERAND> .... */
 
-    private static Gitlet gitlet;
-
     public static void main(String... args) {
       if (args.length == 0) {
         System.out.println("Please enter a command.");
@@ -37,12 +35,12 @@ public class Main {
       }
       switch (args[0]) {
       	case "init":
-          gitlet.init();
+          Gitlet.init();
           break;
         case "add":
         	//file name args[1] save to staging area if not in blobs
         	//iterate through to check if its already there or not
-          gitlet.add(args[1]);
+          Gitlet.add(args[1]);
           break;
         case "commit":
         	//commit message

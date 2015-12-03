@@ -24,36 +24,9 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class Gitlet {
-	protected static HashSet<String> staged = new HashSet<String>();
-	protected static HashSet<String> untracked;
+public class Gitlet implements Serializable {
 
-	private static void serialWrite(Object obj, String name) {
-		try {
-			ObjectOutput output = new ObjectOutputStream(new FileOutputStream(name));
-			output.writeObject(obj);
-			output.close();
-		} catch (IOException e) {
-			System.out.println("Error in serialWrite.");
-		}
-	}
 
-	private static Object serialRead(String name) {
-		Object obj = null;
-		try {
-			ObjectInput input = new ObjectInputStream(new FileInputStream(name));
-			try {
-				obj = (Object) input.readObject();
-				input.close();
-			} catch (ClassNotFoundException e2) {
-				input.close();
-				System.out.println("ClassNotFoundException in serialRead");
-			}
-		} catch (IOException e) {
-			System.out.println("Error in serialRead.");
-		}
-		return obj;
-	}
 
 	/** Initalizes gitlet. */
 	static void init() {
@@ -64,40 +37,75 @@ public class Gitlet {
     	}
   		Commit initial = new Commit("initial commit");
   		Branch masterBranch = new Branch("master", initial);
+  		masterBranch.head = Integer.toString(initial.hashCode());
   		// Branch.addCommit(Utils.sha1(initial));
-  		Branch.addCommit(Integer.toString(initial.hashCode()));
-  		File stageDir = new File(".gitlet/staging/");
-  		stageDir.mkdir();
+  		File commitDir = new File(".gitlet/commits/");
+  		File blobDir = new File(".gitlet/blobs/");
+  		commitDir.mkdir();
+  		blobDir.mkdir();
+
+  		masterBranch.addCommit(Integer.toString(initial.hashCode()));
+  		Commit.serialWrite(initial, Integer.toString(initial.hashCode()));
+  		Branch.serialWrite(masterBranch);
+
 	}
 
 	/** Adds files to storing directory. */
 	static void add(String name) {
+		// File file = new File(name);
+		// if (fileModified(file, name)) {
+		// 	if (!file.exists() || file.isDirectory()) {
+		// 		System.out.println("File does not exist");
+		// 		return;
+		// 	} else {
+		// 		staged.add(name);
+		// 	}
+		// }
+
+
 		File file = new File(name);
 		if (fileModified(file, name)) {
-			if (!file.exists() || file.isDirectory()) {
-				System.out.println("File does not exist");
-				return;
-			} else {
-				staged.add(name);
-			}
+			Branch masterBranch = Branch.serialRead();
+			masterBranch.staged.add(name);
+			Branch.serialWrite(masterBranch);
+			
 		}
+
+
+		// try {
+		// 	Files.copy(Paths.get(name), Paths.get(".gitlet/staging/" + name));
+		// 	masterBranch.staged.add(name);
+		// } catch (IOException e) {
+		// 	System.out.println(e);
+		// }
+
+
 	}
-
-
 
 	static boolean fileModified(File file, String name) {
-		//tell if the file is modified from previous commit;
+		Branch masterBranch = Branch.serialRead();
+
 		int hash = file.hashCode();
-		//if hash == get commit value
-		Commit previous = Branch.getHeadCommit();
-		if (!previous.fileMap.containsKey(name)) {
-			return false;
-		} else if (previous.fileMap.get(name).equals(hash)) {
-			untracked.add(name);
-			return false;
-		}
+		Commit head = masterBranch.getHeadCommit();
 		return true;
+
 	}
+
+
+
+	// static boolean fileModified(File file, String name) {
+	// 	//tell if the file is modified from previous commit;
+	// 	int hash = file.hashCode();
+	// 	//if hash == get commit value
+	// 	Commit previous = Branch.getHeadCommit();
+	// 	if (!previous.fileMap.containsKey(name)) {
+	// 		return false;
+	// 	} else if (previous.fileMap.get(name).equals(hash)) {
+	// 		untracked.add(name);
+	// 		return false;
+	// 	}
+	// 	return true;
+	// }
 
 	/** 
 	 * Prints all branches, staged files, removed files,
@@ -110,8 +118,8 @@ public class Gitlet {
 		//print branches from tree of commits
 
 		System.out.println("\n=== Staged Files ===");
-		for (String s : staged)
-			System.out.println(s);
+		// for (String s : staged)
+		// 	System.out.println(s);
 
 		System.out.println("\n=== Removed Files ===");
 		// for (String r : removed)
@@ -122,36 +130,36 @@ public class Gitlet {
 		//wug3.txt (modified)
 
 		System.out.println("\n=== Untracked Files ===");
-		for (String u : untracked)
-			System.out.println(u);
+		// for (String u : untracked)
+		// 	System.out.println(u);
 	}
 
 	/** Commits files to commit directory. */
 	public void commit(String msg) {
-		Commit c = new Commit(msg);
-		for (String name : staged) {
-			try {
-				File file = new File(name);
-				Integer hash = file.hashCode();
-				Files.copy(file.toPath(), Paths.get("/.gitlet/blobs/" + name + hash),
-					StandardCopyOption.REPLACE_EXISTING);
-				c.fileMap.put(name, hash);
+		// Commit c = new Commit(msg);
+		// for (String name : staged) {
+		// 	try {
+		// 		File file = new File(name);
+		// 		Integer hash = file.hashCode();
+		// 		Files.copy(file.toPath(), Paths.get("/.gitlet/blobs/" + name + hash),
+		// 			StandardCopyOption.REPLACE_EXISTING);
+		// 		c.fileMap.put(name, hash);
 
-			} catch (IOException e) {
-				System.out.println("Cannot add file.");
-			}
-        }
+		// 	} catch (IOException e) {
+		// 		System.out.println("Cannot add file.");
+		// 	}
+  //       }
 
 
-        Commit previous = Branch.getHeadCommit();
+  //       Commit previous = Branch.getHeadCommit();
 
-        for (String name : previous.fileMap.keySet()) {
-        		File file = new File(name);
-				Integer hash = file.hashCode();
-        	if (!untracked.contains(name)) {
-        			c.fileMap.put(name, hash);
-        		}	
-        }
+  //       for (String name : previous.fileMap.keySet()) {
+  //       		File file = new File(name);
+		// 		Integer hash = file.hashCode();
+  //       	if (!untracked.contains(name)) {
+  //       			c.fileMap.put(name, hash);
+  //       		}	
+  //       }
 
 	}
 
