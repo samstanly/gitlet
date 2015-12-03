@@ -24,6 +24,8 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.FileAlreadyExistsException;
+import java.util.TreeSet;
+
 
 public class Gitlet implements Serializable {
 
@@ -116,7 +118,7 @@ public class Gitlet implements Serializable {
 			if (head.fileMap.get(name).equals(sha)) {
 				return false;
 			} else {
-				tree.untracked.add(name);
+				tree.notToCommit.add(name);
 				return true;
 			}
 		}
@@ -146,19 +148,30 @@ public class Gitlet implements Serializable {
 	 * Prints all branches, staged files, removed files,
 	 * modified/deleted files, and untracked files.
 	 */
-	public void status() {
+	public static void status() {
+		CommitTree tree = CommitTree.serialRead(); //TREE
 
-		System.out.println("=== CommitTreees ===");
-		//System.out.println(("*" + currCommitTree));
-		//print branches from tree of commits
+		System.out.println("=== Branches ===");
+		// System.out.println(("*" + tree.currBranch));
+
+
+		for (String branch : tree.branches.keySet()) {
+			if (!branch.equals(tree.currBranch)) {
+				System.out.println(branch);
+			} else {
+				System.out.println("*" + branch);
+			}
+		}
 
 		System.out.println("\n=== Staged Files ===");
-		// for (String s : staged)
-		// 	System.out.println(s);
+		for (String name : tree.staged) {
+			System.out.println(name);
+		}
 
 		System.out.println("\n=== Removed Files ===");
-		// for (String r : removed)
-		// 	System.out.println(r);
+		for (String name : tree.removed) {
+			System.out.println(name);
+		}
 
 		System.out.println("\n=== Modifications Not Staged For Commit ===");
 		//junk.txt (deleted)
@@ -175,7 +188,7 @@ public class Gitlet implements Serializable {
 
 		String headSHA = tree.head;
 
-		if (tree.untracked.size() == 0 && tree.staged.size() == 0) {
+		if (tree.notToCommit.size() == 0 && tree.staged.size() == 0) {
 			System.out.println("No changes added to the commit");
 			return;
 		}
@@ -208,7 +221,7 @@ public class Gitlet implements Serializable {
 		Commit head = tree.getHeadCommit();
 
 		for (String name : head.fileMap.keySet()) {
-			if (!tree.untracked.contains(name)) {
+			if (!tree.notToCommit.contains(name)) {
 				File file = new File(name);
 				byte[] b = Utils.readContents(file);
 				String sha = Utils.sha1(b);
@@ -225,8 +238,9 @@ public class Gitlet implements Serializable {
 
 		tree.head = Commit.commitToSha(c);
 		tree.branches.put(tree.currBranch, tree.head);
-		tree.staged = new HashSet<String>();
-		tree.untracked = new HashSet<String>();
+		tree.staged = new TreeSet<String>();
+		tree.notToCommit = new HashSet<String>();
+		// tree.removed = new TreeSet<String>(); //Clear Removed Every COMMIT?
 
 		Commit.serialWrite(c, tree.head);
   		CommitTree.serialWrite(tree);
@@ -269,7 +283,8 @@ public class Gitlet implements Serializable {
 					tree.staged.remove(name);
 					Files.delete(Paths.get(".gitlet/staged/" + name));
 				}
-				tree.untracked.add(name);
+				tree.notToCommit.add(name);
+				tree.removed.add(name);
 				Files.delete(Paths.get(name));
 			} catch (IOException e) {
 				System.out.println("Cannot delete.");

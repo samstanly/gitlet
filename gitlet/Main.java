@@ -67,6 +67,7 @@ public class Main {
           Gitlet.find(args[1]);
           break;
         case "status":
+          Gitlet.status();
           break;
         case "checkout":
           	//file name

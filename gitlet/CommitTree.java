@@ -25,6 +25,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectInput;
 import java.util.HashMap;
+import java.util.TreeSet;
+import java.util.TreeMap;
 
 public class CommitTree implements Serializable {
 	protected String head;
@@ -33,10 +35,12 @@ public class CommitTree implements Serializable {
 
 	protected String currBranch;
 
-	protected HashSet<String> staged = new HashSet<String>();
-	protected HashSet<String> untracked =  new HashSet<String>();
+	protected TreeSet<String> staged = new TreeSet<String>();
+	protected HashSet<String> notToCommit =  new HashSet<String>();
 
-	protected HashMap<String, String> branches = new HashMap<String, String>();
+	protected TreeMap<String, String> branches = new TreeMap<String, String>();
+
+	protected TreeSet<String> removed = new TreeSet<String>();
 
 
 
