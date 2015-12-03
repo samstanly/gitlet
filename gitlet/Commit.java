@@ -67,7 +67,7 @@ public class Commit implements Serializable {
 	protected static Commit serialRead(String name) {
 		Commit c = null;
 		try {
-			ObjectInput input = new ObjectInputStream(new FileInputStream(name + ".ser"));
+			ObjectInput input = new ObjectInputStream(new FileInputStream(".gitlet/commits/" + name + ".ser"));
 			try {
 				c = (Commit) input.readObject();
 				input.close();
@@ -77,6 +77,7 @@ public class Commit implements Serializable {
 			}
 		} catch (IOException e) {
 			System.out.println("Error in commit serialRead.");
+			e.printStackTrace();
 		}
 		return c;
 	}
