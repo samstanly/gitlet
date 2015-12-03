@@ -37,8 +37,7 @@ public class Gitlet implements Serializable {
     	}
   		Commit initial = new Commit("initial commit");
   		Branch masterBranch = new Branch("master", initial);
-  		masterBranch.head = Integer.toString(initial.hashCode());
-  		// Branch.addCommit(Utils.sha1(initial));
+  		masterBranch.head = Commit.commitToSha(initial);
   		File commitDir = new File(".gitlet/commits/");
   		File blobDir = new File(".gitlet/blobs/");
   		commitDir.mkdir();
@@ -52,34 +51,22 @@ public class Gitlet implements Serializable {
 
 	/** Adds files to storing directory. */
 	static void add(String name) {
-		// File file = new File(name);
-		// if (fileModified(file, name)) {
-		// 	if (!file.exists() || file.isDirectory()) {
-		// 		System.out.println("File does not exist");
-		// 		return;
-		// 	} else {
-		// 		staged.add(name);
-		// 	}
-		// }
-
-
 		File file = new File(name);
-		if (fileModified(file, name)) {
+		if (!file.exists() || file.isDirectory()) {
+				System.out.println("File does not exist");
+				return;
+			}
+		else if (fileModified(file, name)) {
 			Branch masterBranch = Branch.serialRead();
 			masterBranch.staged.add(name);
 			Branch.serialWrite(masterBranch);
-			
 		}
-
-
 		// try {
 		// 	Files.copy(Paths.get(name), Paths.get(".gitlet/staging/" + name));
 		// 	masterBranch.staged.add(name);
 		// } catch (IOException e) {
 		// 	System.out.println(e);
 		// }
-
-
 	}
 
 	static boolean fileModified(File file, String name) {

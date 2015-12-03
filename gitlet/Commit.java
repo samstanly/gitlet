@@ -26,6 +26,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectInput;
+import java.io.ByteArrayOutputStream ;
 
 
 public class Commit implements Serializable {
@@ -48,12 +49,7 @@ public class Commit implements Serializable {
         commitTime = sdf.format(date);
 	}
 
-	// protected static String getCommitSha(Commit c) {
-	// 	for () {
-			
-	// 	}
-	// }
-
+	/** Writes .ser file from NAME from a commit C. */
 	protected static void serialWrite(Commit c, String name) { //NAME is hashcode or something
 		try {
 			ObjectOutput output = new ObjectOutputStream(new FileOutputStream(".gitlet/commits/" + name + ".ser"));
@@ -64,6 +60,7 @@ public class Commit implements Serializable {
 		}
 	}
 
+	/** Reads .ser file from NAME and returns the commit. */
 	protected static Commit serialRead(String name) {
 		Commit c = null;
 		try {
@@ -90,6 +87,31 @@ public class Commit implements Serializable {
 	/** Returns the commit timestamp. */
 	public String getCommitTime() {
 		return commitTime;
+	}
+
+	private static byte[] convertToBytes(Object object) throws IOException {
+	    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	         ObjectOutput out = new ObjectOutputStream(bos)) {
+	        out.writeObject(object);
+	        return bos.toByteArray();
+	    } catch (IOException e) {
+	    	System.out.println("convert error");
+	    	return null;
+	    }
+	}
+
+	public static String commitToSha (Commit c) {
+		try {
+			byte[] b = convertToBytes(c);
+			return Utils.sha1(b);
+		} catch (IOException e) {
+			System.out.println("commit to sha error");
+			return null;
+		}
+	}
+
+	public static Commit shaToCommit (String s) {
+		return serialRead(s);
 	}
 
 }
