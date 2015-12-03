@@ -24,18 +24,21 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectInput;
+import java.util.HashMap;
 
 public class CommitTree implements Serializable {
 	protected String head;
 	protected Commit currCommit;
-	protected LinkedList<String> commitList = new LinkedList<String>();
+	// protected LinkedList<String> commitList = new LinkedList<String>();
 
 	protected HashSet<String> staged = new HashSet<String>();
 	protected HashSet<String> untracked =  new HashSet<String>();
 
+	protected HashMap<String, String> branches = new HashMap<String, String>();
+
 	protected static void serialWrite(CommitTree b) {
 		try {
-			ObjectOutput output = new ObjectOutputStream(new FileOutputStream(".gitlet/branch.ser"));
+			ObjectOutput output = new ObjectOutputStream(new FileOutputStream(".gitlet/tree.ser"));
 			output.writeObject(b);
 			output.close();
 		} catch (IOException e) {
@@ -46,11 +49,10 @@ public class CommitTree implements Serializable {
 	protected static CommitTree serialRead() {
 		CommitTree b = null;
 		try {
-			ObjectInput input = new ObjectInputStream(new FileInputStream(".gitlet/branch.ser"));
+			ObjectInput input = new ObjectInputStream(new FileInputStream(".gitlet/tree.ser"));
 
 			try {
 				b = (CommitTree) input.readObject();
-				System.out.println(b);
 				input.close();
 			} catch (ClassNotFoundException e2) {
 				input.close();
@@ -64,27 +66,9 @@ public class CommitTree implements Serializable {
 		return b;
 	}
 
-	CommitTree(Commit currCommit) {
-		this.currCommit = currCommit;
-	}
-
 
 	Commit getHeadCommit() {
-		System.out.println(head);
 		return Commit.shaToCommit(head);
 	}
 
-
-
-
-
-	public void printLog() {
-		for (String commitSHA : commitList) {
-			Commit c = Commit.shaToCommit(commitSHA);
-			System.out.println("===");
-			System.out.println("Commit " + commitSHA);
-			System.out.println(c.getCommitTime());
-			System.out.println(c.getCommitMsg());
-		}
-	}
 }

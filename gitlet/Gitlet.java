@@ -23,9 +23,19 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.FileAlreadyExistsException;
 
 public class Gitlet implements Serializable {
 
+	// static boolean initialized = false;
+
+	// static CommitTree tree = null;
+
+	// static void startUp() {
+	// 	if (initialized) {
+	// 		tree = CommitTree.serialRead();
+	// 	}
+	// }
 
 
 	/** Initalizes gitlet. */
@@ -34,22 +44,24 @@ public class Gitlet implements Serializable {
     	boolean e = dir.mkdir();
     	if (!e) {
     		System.out.println("gitlet version-control system already exists in the current directory");
+    	} else {
+	  		Commit initial = new Commit("initial commit", null);
+	  		CommitTree tree = new CommitTree();
+
+
+	  		File commitDir = new File(".gitlet/commits/");
+	  		File blobDir = new File(".gitlet/blobs/");
+	  		File stagedDir = new File(".gitlet/staged/");
+	  		commitDir.mkdir();
+	  		blobDir.mkdir();
+	  		stagedDir.mkdir();
+
+	  		tree.head = Commit.commitToSha(initial);
+	  		tree.branches.put("master", tree.head);
+	  		Commit.serialWrite(initial, tree.head);
+	  		CommitTree.serialWrite(tree);
+    		
     	}
-  		Commit initial = new Commit("initial commit");
-  		CommitTree tree = new CommitTree(initial);
-
-
-
-  		// CommitTree.addCommit(Utils.sha1(initial));
-  		File commitDir = new File(".gitlet/commits/");
-  		File blobDir = new File(".gitlet/blobs/");
-  		commitDir.mkdir();
-  		blobDir.mkdir();
-
-  		tree.head = Commit.commitToSha(initial);
-  		tree.commitList.addFirst(tree.head);
-  		Commit.serialWrite(initial, tree.head);
-  		CommitTree.serialWrite(tree);
 
 	}
 
@@ -67,11 +79,18 @@ public class Gitlet implements Serializable {
 
 
 		File file = new File(name);
-		if (fileModified(file, name)) {
-			CommitTree tree = CommitTree.serialRead();
+		if (!file.exists()) {
+			System.out.println("File does not exist.");
+		} else if (fileModified(file, name)) {
+			CommitTree tree = CommitTree.serialRead(); // TREE
 			tree.staged.add(name);
-			CommitTree.serialWrite(tree);
-			
+			try {
+				Files.copy(Paths.get(name), Paths.get(".gitlet/staged/" + name));
+			} catch (IOException e) {
+				System.out.println(e);
+			}
+
+			CommitTree.serialWrite(tree);	
 		}
 
 
@@ -86,7 +105,7 @@ public class Gitlet implements Serializable {
 	}
 
 	static boolean fileModified(File file, String name) {
-		CommitTree tree = CommitTree.serialRead();
+		CommitTree tree = CommitTree.serialRead(); //TREE
 
 		byte[] b = Utils.readContents(file);
 		String sha = Utils.sha1(b);
@@ -152,20 +171,34 @@ public class Gitlet implements Serializable {
 
 	/** Commits files to commit directory. */
 	static void commit(String msg) {
-		CommitTree tree = CommitTree.serialRead();
+		CommitTree tree = CommitTree.serialRead(); //TREE
 
+		String headSHA = tree.head;
 
-		Commit c = new Commit(msg);
+		if (tree.untracked.size() == 0 && tree.staged.size() == 0) {
+			System.out.println("No changes added to the commit");
+			return;
+		}
+
+		Commit c = new Commit(msg, headSHA);
 		for (String name : tree.staged) {
 			File file = new File(name);
 			byte[] b = Utils.readContents(file);
 			String sha = Utils.sha1(b);
 			c.fileMap.put(name, sha);
+			System.out.println(name);
 
 			try {
-				Files.copy(Paths.get(name), Paths.get(".gitlet/blobs/" + sha));
+				Files.copy(Paths.get(".gitlet/staged/" + name), Paths.get(".gitlet/blobs/" + sha));
 			} catch (IOException e) {
-				System.out.println(e);
+				if (!(e instanceof FileAlreadyExistsException)) {
+					System.out.println("Error moving file to blob");
+				}
+			}
+			try {
+				Files.delete(Paths.get(".gitlet/staged/" + name));
+			} catch (IOException e) {
+				System.out.println("Error deleting from staging");
 			}
 		}
 
@@ -179,17 +212,20 @@ public class Gitlet implements Serializable {
 				String sha = Utils.sha1(b);
 				c.fileMap.put(name, sha);
 
-				try {
-					Files.copy(Paths.get(name), Paths.get(".gitlet/blobs/" + sha));
-				} catch (IOException e) {
-					System.out.println(e);
-				}
+				// try {
+				// 	Files.copy(Paths.get(name), Paths.get(".gitlet/blobs/" + sha));
+				// } catch (IOException e) {
+				// 	System.out.println(e);
+				// }
 			}
 		}
 
 
 		tree.head = Commit.commitToSha(c);
-		tree.commitList.addFirst(tree.head);
+
+		tree.staged = new HashSet<String>();
+		tree.untracked = new HashSet<String>();
+
 		Commit.serialWrite(c, tree.head);
   		CommitTree.serialWrite(tree);
 
@@ -222,13 +258,42 @@ public class Gitlet implements Serializable {
 	}
 
 	/** Untrack file and will not be included in the next commit. */
-	public void rm(String name) {
-
+  public static void rm(String name) {
+		CommitTree tree = CommitTree.serialRead(); //TREE
+		Commit head = tree.getHeadCommit();
+		if(head.fileMap.containsKey(name)) {
+			try {
+				if (tree.staged.contains(name)) {
+					tree.staged.remove(name);
+					Files.delete(Paths.get(".gitlet/staged/" + name));
+				}
+				tree.untracked.add(name);
+				Files.delete(Paths.get(name));
+			} catch (IOException e) {
+				System.out.println("Cannot delete.");
+			}
+		} else if (tree.staged.contains(name)) {
+			tree.staged.remove(name);
+			try {
+				Files.delete(Paths.get(".gitlet/staged/" + name));
+			} catch (IOException e) {
+				System.out.println("Cannot delete");
+			}
+		} else {
+			System.out.println("No reason to remove the file.");
+		}
+		CommitTree.serialWrite(tree);
 	}
 
 	/** Prints all the commits with time/date and message. */
-	public void log() {
-		// CommitTree.printLog();
+	public static void log() {
+		CommitTree tree = CommitTree.serialRead(); //TREE
+		Commit curr = tree.getHeadCommit();
+		while (curr.parentSHA != null) {
+			curr.print(Commit.commitToSha(curr));
+			curr = Commit.shaToCommit(curr.parentSHA);
+		}
+		curr.print(Commit.commitToSha(curr));
 	}
 
 	/** Displays information about all commits. Order doesn't matter. */

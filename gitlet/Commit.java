@@ -35,6 +35,8 @@ public class Commit implements Serializable {
 	/** The commit timestamp. */
 	private String commitTime;
 
+	protected String parentSHA;
+
 	protected HashMap<String, String> fileMap = new HashMap<String, String>();
 
 	/**
@@ -42,11 +44,12 @@ public class Commit implements Serializable {
 	 * MSG, the SHA of the parent commit, PARENTSHA, and
 	 * the SHA of the child commit, CHILDSHA.
 	 */
-	public Commit(String commitMsg) {
+	public Commit(String commitMsg, String parentSHA) {
 		this.commitMsg = commitMsg;
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-M-dd hh:mm:ss");
         Date date = new Date();
         commitTime = sdf.format(date);
+        this.parentSHA = parentSHA;
 	}
 
 	// protected static String getCommitSha(Commit c) {
@@ -119,7 +122,12 @@ public class Commit implements Serializable {
 		return commitTime;
 	}
 
-
+	public void print(String mySHA) {
+		System.out.println("===");
+		System.out.println("Commit " + mySHA);
+		System.out.println(commitTime);
+		System.out.println(commitMsg);
+	}
 
 
 

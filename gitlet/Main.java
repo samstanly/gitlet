@@ -33,6 +33,7 @@ public class Main {
         System.out.println("Please enter a command.");
         System.exit(1);
       }
+      // Gitlet.startUp();
       switch (args[0]) {
       	case "init":
           Gitlet.init();
@@ -49,9 +50,15 @@ public class Main {
           }
           break;
         case "rm": 
-        	//file name
+          if (args.length == 1) {
+            System.out.println("Please enter a file to remove.");
+          } 
+          if (args.length == 2) {
+            Gitlet.rm(args[1]);
+          }
           break;
         case "log":
+          Gitlet.log();
           break;
         case "global-log":
           break;

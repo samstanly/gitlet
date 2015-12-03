@@ -20,7 +20,7 @@ PACKAGE = gitlet
 
 STYLEPROG = style61b
 
-# The namee of the Python 3 program, used in the 'check' target.  If your system
+# The nameeeeeeee of the Python 3 program, used in the 'check' target.  If your system
 # has a different name for this program (such as just "python"), run
 # the Makefile with
 #	make PYTHON=python check
