@@ -87,6 +87,16 @@ public class Gitlet implements Serializable {
 
 		int hash = file.hashCode();
 		Commit head = masterBranch.getHeadCommit();
+
+		if (head.fileMap.containsKey(name)) {
+			if (head.fileMap.get(name).equals(hash)) {
+				return false;
+			} else {
+				masterBranch.untracked.add(name);
+				return true;
+			}
+		}
+
 		return true;
 
 	}

@@ -34,7 +34,8 @@ public class Commit implements Serializable {
 	private String commitMsg;
 	/** The commit timestamp. */
 	private String commitTime;
-	protected HashMap<String, Integer> fileMap;
+
+	protected HashMap<String, Integer> fileMap = new HashMap<String, Integer>();
 
 	/**
 	 * Constructor for Commit object with commit message
