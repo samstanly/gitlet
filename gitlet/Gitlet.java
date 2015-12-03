@@ -300,20 +300,20 @@ public class Gitlet implements Serializable {
 
 	/** Displays information about all commits. Order doesn't matter. */
 	public static void globalLog() {
-		HashSet<String> printed = new HashSet<String>();
 		CommitTree tree = CommitTree.serialRead(); //TREE
+		HashSet<String> printed = new HashSet<String>();
 
 		for (String branchSHA : tree.branches.values()) {
 			Commit curr = Commit.shaToCommit(branchSHA);
-			String currSHA = Commit.commitToSha(curr);
+			String currSHA = branchSHA;
 
 			while (curr.parentSHA != null && !printed.contains(currSHA)) {
 				curr.print(currSHA);
 				printed.add(currSHA);
+				currSHA = curr.parentSHA;
 				curr = Commit.shaToCommit(curr.parentSHA);
-				currSHA = Commit.commitToSha(curr);
 			}
-			currSHA = Commit.commitToSha(curr);
+
 			if (!printed.contains(currSHA)) {
 				curr.print(currSHA);
 				printed.add(currSHA);
@@ -327,8 +327,39 @@ public class Gitlet implements Serializable {
 	 * Prints out the ids of all commits that have the given
 	 * commit message. 
 	 */
-	public void find(String msg) {
-		//System.out.println("Found no commit with that message.");
+	public static void find(String msg) {
+		CommitTree tree = CommitTree.serialRead(); //TREE
+		HashSet<String> checked = new HashSet<String>();
+		HashSet<String> found = new HashSet<String>();
+
+		for (String branchSHA : tree.branches.values()) {
+			Commit curr = Commit.shaToCommit(branchSHA);
+			String currSHA = branchSHA;
+
+			while (curr.parentSHA != null && !checked.contains(currSHA)) {
+				if (msg.equals(curr.getCommitMsg())) {
+					System.out.println(currSHA);
+					found.add(currSHA);
+				}
+				checked.add(currSHA);
+				currSHA = curr.parentSHA;
+				curr = Commit.shaToCommit(curr.parentSHA);
+			}
+
+			if (!checked.contains(currSHA)) {
+				if (msg.equals(curr.getCommitMsg())) {
+					System.out.println(currSHA);
+					found.add(currSHA);
+				}
+				checked.add(currSHA);
+			}
+
+		}
+		if (found.size() == 0) {
+			System.out.println("Found no commit with that message.");
+		}
+
+
 	}
 
 	/** Checkouts using file name, commit id, or branch name. */
