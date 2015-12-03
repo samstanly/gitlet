@@ -22,6 +22,10 @@ import java.util.HashMap;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectInput;
 
 
 public class Commit implements Serializable {
@@ -42,6 +46,39 @@ public class Commit implements Serializable {
         SimpleDateFormat sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss");
         Date date = new Date();
         commitTime = sdf.format(date);
+	}
+
+	// protected static String getCommitSha(Commit c) {
+	// 	for () {
+			
+	// 	}
+	// }
+
+	protected static void serialWrite(Commit c, String name) { //NAME is hashcode or something
+		try {
+			ObjectOutput output = new ObjectOutputStream(new FileOutputStream(".gitlet/commits/" + name + ".ser"));
+			output.writeObject(c);
+			output.close();
+		} catch (IOException e) {
+			System.out.println("Error in serialWrite.");
+		}
+	}
+
+	protected static Commit serialRead(String name) {
+		Commit c = null;
+		try {
+			ObjectInput input = new ObjectInputStream(new FileInputStream(name + ".ser"));
+			try {
+				c = (Commit) input.readObject();
+				input.close();
+			} catch (ClassNotFoundException e2) {
+				input.close();
+				System.out.println("ClassNotFoundException in serialRead");
+			}
+		} catch (IOException e) {
+			System.out.println("Error in commit serialRead.");
+		}
+		return c;
 	}
 
 	/** Returns the commit message. */
