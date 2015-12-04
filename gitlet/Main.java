@@ -75,7 +75,6 @@ public class Main {
             //branch name
             if (args.length == 3) {
               if (args[1].equals("--")) {
-                System.out.println("here");
                 String filename = args[2];
                 Gitlet.checkout(filename);
               } else {
