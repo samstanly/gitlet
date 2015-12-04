@@ -73,15 +73,16 @@ public class Main {
           	//file name
           	//commit id and file name
             //branch name
-            if (args.length == 2) {
+            if (args.length == 3) {
               if (args[1].equals("--")) {
+                System.out.println("here");
                 String filename = args[2];
                 Gitlet.checkout(filename);
               } else {
                 String branchName = args[2];
                 Gitlet.checkoutBranch(branchName);
               }
-            } else if (args.length == 3) {
+            } else if (args.length == 4) {
               if (args[2].equals("--")) {
                 String commitID = args[1];
                 String commitFile = args[3];

@@ -195,7 +195,7 @@ public class Gitlet implements Serializable {
 				}
 			}
 			if (!inDirectory) {
-				if (!tree.removed.contains(name)) {
+				if (!tree.removed.contains(name) && !(tree.staged.contains(name))) {
 					modified.add(name + " (deleted)");
 				}
 			}
@@ -438,12 +438,14 @@ public class Gitlet implements Serializable {
 
 	/** Checkouts using file name. */
 	public static void checkout(String name) {
+		System.out.println("asdfsd");
 		//filename
 		CommitTree tree = CommitTree.serialRead();
 		Commit head = tree.getHeadCommit();
 		if (head.fileMap.containsKey(name)) {
 			try {
-				Files.copy(Paths.get(".gitlet/blobs/" + head.fileMap.get(name), System.getProperty("user.dir") + name));
+				Files.copy(Paths.get(".gitlet/blobs/" + head.fileMap.get(name)),
+					Paths.get(name));
 			} catch (IOException e) {
 				System.out.println(e);
 			}
