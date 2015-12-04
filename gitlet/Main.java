@@ -72,13 +72,39 @@ public class Main {
         case "checkout":
           	//file name
           	//commit id and file name
-          	//branch name
+            //branch name
+            if (args.length == 2) {
+              if (args[1].equals("--")) {
+                String filename = args[2];
+                Gitlet.checkout(filename);
+              } else {
+                String branchName = args[2];
+                Gitlet.checkoutBranch(branchName);
+              }
+            } else if (args.length == 3) {
+              if (args[2].equals("--")) {
+                String commitID = args[1];
+                String commitFile = args[3];
+                Gitlet.checkout(commitID, commitFile);
+              }
+            }
+
             break;
         case "branch":
-        	//branch name
+          if (args.length == 1) {
+            System.out.println("Please enter a name for the branch.");
+          }
+        	else if (args.length == 2) {
+            Gitlet.branch(args[1]);
+          }
           break;
         case "rm-branch":
-        	//branch name
+        	if (args.length == 1) {
+            System.out.println("Please enter branch you want to remove.");
+          }
+          else if (args.length == 2) {
+            Gitlet.removeBranch(args[1]);
+          }
           break;
         case "reset":
         	//commit id

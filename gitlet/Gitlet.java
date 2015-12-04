@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.FileAlreadyExistsException;
 import java.util.TreeSet;
+import java.util.Arrays;
 
 
 public class Gitlet implements Serializable {
@@ -92,7 +93,7 @@ public class Gitlet implements Serializable {
 				System.out.println(e);
 			}
 
-			CommitTree.serialWrite(tree);	
+			CommitTree.serialWrite(tree);
 		}
 
 
@@ -174,13 +175,70 @@ public class Gitlet implements Serializable {
 		}
 
 		System.out.println("\n=== Modifications Not Staged For Commit ===");
-		//junk.txt (deleted)
-		//wug3.txt (modified)
+		Commit head = tree.getHeadCommit();
+		TreeSet<String> modified = new TreeSet<String>();
+		File folder = new File(System.getProperty("user.dir"));
+		File[] arrayOfFiles = folder.listFiles();
+
+		for (String name : head.fileMap.keySet()) {
+			boolean inDirectory = false;
+			for (File file : arrayOfFiles) {
+				if (!file.isDirectory()) {
+					if (head.fileMap.containsKey(file.getName()) && !tree.staged.contains(name)) {
+						inDirectory = true;
+						String newSHA = Utils.sha1(Utils.readContents(file));
+						if (!head.fileMap.containsValue(newSHA)) {
+							modified.add(name + " (modified)");
+						}
+						break;
+					}
+				}
+			}
+			if (!inDirectory) {
+				if (!tree.removed.contains(name)) {
+					modified.add(name + " (deleted)");
+				}
+			}
+		}
+		for (String name : modified) {
+			System.out.println(name);
+		}
 
 		System.out.println("\n=== Untracked Files ===");
+		// File folder = new File(System.getProperty("user.dir"));
+		// File[] listOfFiles = folder.listFiles();
+		for (File file : arrayOfFiles) {
+			if (!(file.isDirectory() || file.isHidden() 
+				|| head.fileMap.containsKey(file.getName()) 
+				|| tree.staged.contains(file.getName()))) {
+				System.out.println(file.getName());
+			}
+		}
+
+		CommitTree.serialWrite(tree);
+
+
 		// for (String u : untracked)
 		// 	System.out.println(u);
 	}
+
+	// private static void printUntrackedFile(File file, CommitTree tree, String toFile) {
+	// 	if (file.getName().equals("gitlet") || file.isHidden()) { //FIX THIS?
+	// 		return;
+	// 	}
+	// 	if (file.isDirectory()) {
+	// 		for (File f : file.listFiles()) {
+	// 			// System.out.println(file.getName());
+	// 			printUntrackedFile(f, tree, toFile + file.getName() + "/");
+	// 		}
+	// 	} else {
+	// 		Commit head = tree.getHeadCommit();
+	// 		// System.out.println(toFile + file.getName());
+	// 		if (!(head.fileMap.containsKey(toFile + file.getName()) || tree.staged.contains(toFile + file.getName()))) {
+	// 			System.out.println(toFile + file.getName());
+	// 		}
+	// 	}
+	// }
 
 	/** Commits files to commit directory. */
 	static void commit(String msg) {
@@ -240,6 +298,7 @@ public class Gitlet implements Serializable {
 		tree.branches.put(tree.currBranch, tree.head);
 		tree.staged = new TreeSet<String>();
 		tree.notToCommit = new HashSet<String>();
+		tree.removed = new TreeSet<String>();
 		// tree.removed = new TreeSet<String>(); //Clear Removed Every COMMIT?
 
 		Commit.serialWrite(c, tree.head);
@@ -377,19 +436,57 @@ public class Gitlet implements Serializable {
 
 	}
 
-	/** Checkouts using file name, commit id, or branch name. */
-	public void checkout() {
+	/** Checkouts using file name. */
+	public static void checkout(String name) {
+		//filename
+		CommitTree tree = CommitTree.serialRead();
+		Commit head = tree.getHeadCommit();
+		if (head.fileMap.containsKey(name)) {
+			try {
+				Files.copy(Paths.get(".gitlet/blobs/" + head.fileMap.get(name), System.getProperty("user.dir") + name));
+			} catch (IOException e) {
+				System.out.println(e);
+			}
+		}
+
+		//branch
+
+		CommitTree.serialWrite(tree);
+	}
+
+	/** Checkouts using file name and commit id. */
+	public static void checkout(String commitID, String name) {
+
+	}
+
+	/** Checkouts branch. */
+	public static void checkoutBranch(String branch) {
 
 	}
 
 	/** Creates a new branch with the given name. */
-	public void branch(String name) {
-
+	public static void branch(String name) {
+		CommitTree tree = CommitTree.serialRead();
+		if (!tree.branches.containsKey(name)) {
+			tree.branches.put(name, tree.head);
+			tree.currBranch = name;
+			CommitTree.serialWrite(tree);
+		} else {
+			System.out.println("A branch with that name already exists.");
+		}
 	}
 
 	/** Deletes branch with given name. */
-	public void removeCommitTree(CommitTree b) {
-
+	public static void removeBranch(String name) {
+		CommitTree tree = CommitTree.serialRead();
+		if (!tree.branches.containsKey(name)) {
+			System.out.println("A branch with that name does not exist.");
+		} else if (tree.currBranch.equals(name)) {
+			System.out.println("Cannot remove the current branch.");
+		} else {
+			tree.branches.remove(name, tree.head);
+			CommitTree.serialWrite(tree);
+		}
 	}
 
 	/** 
