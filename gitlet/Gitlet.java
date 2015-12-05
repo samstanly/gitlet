@@ -26,6 +26,7 @@ import java.nio.file.Paths;
 import java.nio.file.FileAlreadyExistsException;
 import java.util.TreeSet;
 import java.util.Arrays;
+import java.nio.file.NoSuchFileException;
 
 
 public class Gitlet implements Serializable {
@@ -183,46 +184,18 @@ public class Gitlet implements Serializable {
 		for (String name : head.fileMap.keySet()) {
 			boolean inDirectory = false;
 			for (File file : arrayOfFiles) {
-					System.out.println(file.getName());
+					// System.out.println(file.getName());
 				if (!file.isDirectory() && !file.isHidden()) {
-
-					// if (head.fileMap.containsKey(file.getName()) || tree.staged.contains(name)) {
-					// 	inDirectory = true;
-					// 	String newSHA = Utils.sha1(Utils.readContents(file));
-					// 	if (tree.staged.contains(name)) {
-					// 		File f = new File(".gitlet/staged/" + name);
-					// 		String oldSHA = Utils.sha1(Utils.readContents(f));
-					// 		if (oldSHA.equals(newSHA)) {
-					// 			System.out.println("wooww");
-					// 			continue;
-					// 		}
-					// 	}
-
-
-					// if (head.fileMap.containsKey(file.getName()) || tree.staged.contains(file.getName())) {
-					// 	inDirectory = true;
-					// 	String newSHA = Utils.sha1(Utils.readContents(file));
-					// 	System.out.println(file.getAbsolutePath());
-					// 	System.out.println(file.getName());
-					// 	System.out.println("asfasd");
-					// 	if (tree.staged.contains(file.getName())) {
-					// 		File f = new File(".gitlet/staged/" + file.getName());
-					// 		String oldSHA = Utils.sha1(Utils.readContents(f));
-					// 		if (!oldSHA.equals(newSHA)) {
-					// 			System.out.println("1");
-					// 			System.out.println(oldSHA);
-					// 			System.out.println(newSHA);
-					// 			modified.add(name + " (modified)");
-					// 		}
-					// 	}
-
-
-
-					if (head.fileMap.containsKey(file.getName()) && !tree.staged.contains(name)) {
+					if (head.fileMap.containsKey(file.getName()) || tree.staged.contains(name)) {
 						inDirectory = true;
 						String newSHA = Utils.sha1(Utils.readContents(file));
-						if (!head.fileMap.containsValue(newSHA)) {
-							System.out.println("2");
+						if (tree.staged.contains(name)) {
+							File f = new File(".gitlet/staged/" + name);
+							String oldSHA = Utils.sha1(Utils.readContents(f));
+							if (oldSHA.equals(newSHA)) {
+								modified.add(name + " (modified)");
+							}
+						} else if (!head.fileMap.containsValue(newSHA)) {
 							modified.add(name + " (modified)");
 						}
 						break;
@@ -242,11 +215,11 @@ public class Gitlet implements Serializable {
 		System.out.println("\n=== Untracked Files ===");
 		// File folder = new File(System.getProperty("user.dir"));
 		// File[] listOfFiles = folder.listFiles();
-		for (File file : arrayOfFiles) {
-			if (!(file.isDirectory() || file.isHidden() 
-				|| head.fileMap.containsKey(file.getName()) 
-				|| tree.staged.contains(file.getName()))) {
-				System.out.println(file.getName());
+
+		Gitlet.getUntracked(head, tree);
+		for (String name : tree.untracked) {
+			if (!tree.staged.contains(name)) {
+				System.out.println(name);
 			}
 		}
 
@@ -275,6 +248,18 @@ public class Gitlet implements Serializable {
 	// 	}
 	// }
 
+	private static void getUntracked(Commit head, CommitTree tree) {
+		File folder = new File(System.getProperty("user.dir"));
+		File[] arrayOfFiles = folder.listFiles();
+		for (File file : arrayOfFiles) {
+			if (!(file.isDirectory() || file.isHidden() 
+				|| head.fileMap.containsKey(file.getName()) 
+				|| tree.staged.contains(file.getName()))) {
+				tree.untracked.add(file.getName());
+			}
+		}
+	}	
+
 	/** Commits files to commit directory. */
 	static void commit(String msg) {
 		CommitTree tree = CommitTree.serialRead(); //TREE
@@ -292,7 +277,10 @@ public class Gitlet implements Serializable {
 			byte[] b = Utils.readContents(file);
 			String sha = Utils.sha1(b);
 			c.fileMap.put(name, sha);
-			System.out.println(name);
+			// System.out.println(name);
+			if (tree.untracked.contains(name)) {
+				tree.untracked.remove(name);
+			}
 
 			try {
 				Files.copy(Paths.get(".gitlet/staged/" + name), Paths.get(".gitlet/blobs/" + sha));
@@ -503,8 +491,52 @@ public class Gitlet implements Serializable {
 
 	}
 
-	/** Checkouts branch. */
+/** Checkouts branch. */
 	public static void checkoutBranch(String branch) {
+		CommitTree tree = CommitTree.serialRead();
+		String sha = tree.branches.get(branch);
+		Commit newHead = Commit.shaToCommit(sha);
+		if (!tree.branches.containsKey(branch)) {
+			System.out.println("No such branch exists.");
+			return;
+		}
+		else if (branch.equals(tree.currBranch)) {
+			System.out.println("No need to checkout the current branch.");
+			return;
+		}
+		else {
+			for (String name : newHead.fileMap.keySet()) {
+				if (tree.untracked.contains(name)) {
+					System.out.println("There is an untracked file in the way; delete it or add it first.");
+					System.out.println(name);
+
+					return;
+				}
+			}
+		}
+
+		tree.currBranch = branch;
+		Commit head = tree.getHeadCommit();
+		for (String name : head.fileMap.keySet()) {
+				try {
+					Files.delete(Paths.get(name));
+				} catch (IOException e) {
+					System.out.println("Error deleting files from current branch.");
+					// if (!e instanceof FileNotFoundException)
+				}
+		}
+		tree.head = sha;
+		for (String name : newHead.fileMap.keySet()) {
+			try {
+				Files.copy(Paths.get(".gitlet/blobs/" + newHead.fileMap.get(name)),
+					Paths.get(name));
+			} catch (IOException e) {
+				if (e instanceof NoSuchFileException) {
+					System.out.println("Error copying files from branch.");
+				}
+			}
+		}
+		CommitTree.serialWrite(tree);
 
 	}
 
@@ -528,7 +560,7 @@ public class Gitlet implements Serializable {
 		CommitTree tree = CommitTree.serialRead();
 		if (!tree.branches.containsKey(name)) {
 			tree.branches.put(name, tree.head);
-			tree.currBranch = name;
+			// tree.currBranch = name;
 			CommitTree.serialWrite(tree);
 		} else {
 			System.out.println("A branch with that name already exists.");
@@ -552,8 +584,28 @@ public class Gitlet implements Serializable {
 	 * Checks out all the files tracked by given commit. Moves
 	 * current branch's head to that commit node.
 	 */
-	public void reset(String id) {
+	public static void reset(String id) {
+		CommitTree tree = CommitTree.serialRead();
+		Commit curr = tree.getHeadCommit();
+		String currSHA = tree.head;
+		while (currSHA != null) {
+			if (currSHA.equals(id)) {
+				break;
+			}
+			currSHA = curr.parentSHA;
+			if (currSHA == null) {
+				System.out.println("No commit with that id exists.");
+				return;
+			}
+			curr = Commit.shaToCommit(currSHA);
+		}
 
+		for (String name : curr.fileMap.keySet()) {
+			Gitlet.getFile(name, curr);
+		}
+
+		tree.head = currSHA;
+		CommitTree.serialWrite(tree);
 	}
 
 	/** Merge files from given branch into current branch. */

@@ -42,7 +42,7 @@ public class CommitTree implements Serializable {
 
 	protected TreeSet<String> removed = new TreeSet<String>();
 
-	// protected TreeSet<String> untracked = new TreeSet<String>();
+	protected TreeSet<String> untracked = new TreeSet<String>();
 
 
 

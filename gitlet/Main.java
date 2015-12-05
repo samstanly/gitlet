@@ -36,10 +36,14 @@ public class Main {
       // Gitlet.startUp();
       switch (args[0]) {
       	case "init":
-          Gitlet.init();
+          if (args.length == 1) {
+            Gitlet.init();
+          }
           break;
         case "add":
-          Gitlet.add(args[1]);
+          if (args.length == 2) {
+            Gitlet.add(args[1]);
+          }
           break;
         case "commit":
           if (args.length == 1) {
@@ -47,6 +51,9 @@ public class Main {
           }
           if (args.length == 2) {
             Gitlet.commit(args[1]);
+          }
+          if (args.length > 2) {
+            System.out.println("Please use quotes around your commit message.");
           }
           break;
         case "rm": 
@@ -64,23 +71,27 @@ public class Main {
           Gitlet.globalLog();
           break;
         case "find":
-          Gitlet.find(args[1]);
+          if (args.length == 1) {
+              System.out.println("Please enter commit message.");
+          }
+          if (args.length == 2) {
+            Gitlet.find(args[1]);
+          }
+          if (args.length > 2) {
+            System.out.println("Please use quotes arond your commit message.");
+          }
           break;
         case "status":
           Gitlet.status();
           break;
         case "checkout":
-          	//file name
-          	//commit id and file name
-            //branch name
-            if (args.length == 3) {
-              if (args[1].equals("--")) {
+            if (args.length == 3 && args[1].equals("--")) {
+                System.out.println("here");
                 String filename = args[2];
                 Gitlet.checkout(filename);
-              } else {
-                String branchName = args[2];
+            } else if (args.length == 2) {
+                String branchName = args[1];
                 Gitlet.checkoutBranch(branchName);
-              }
             } else if (args.length == 4) {
               if (args[2].equals("--")) {
                 String commitID = args[1];
@@ -88,7 +99,6 @@ public class Main {
                 Gitlet.checkout(commitID, commitFile);
               }
             }
-
             break;
         case "branch":
           if (args.length == 1) {
@@ -107,14 +117,19 @@ public class Main {
           }
           break;
         case "reset":
-        	//commit id
+          //commit id
+          if (args.length == 1) {
+            System.out.println("Please enter commit ID.");
+          } else if (args.length == 2) {
+            Gitlet.reset(args[1]);
+          }
           break;
         case "merge":
         	//branch name
           break;
         default:
         	System.out.println("No command with that name exists.");
-          break;
+          return;
       }
     }
 
