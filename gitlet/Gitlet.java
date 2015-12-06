@@ -220,6 +220,7 @@ public class Gitlet implements Serializable {
 		for (String name : tree.untracked) {
 			if (!tree.staged.contains(name)) {
 				System.out.println(name);
+				
 			}
 		}
 
