@@ -83,9 +83,17 @@ public class Gitlet implements Serializable {
 
 
 		File file = new File(name);
-		if (!file.exists()) {
-			System.out.println("File does not exist.");
-		} else if (fileModified(file, name)) {
+
+		String filepath = System.getProperty("user.dir") + "/" + name;
+		try {
+			if (!file.exists() || !file.getCanonicalPath().equals(filepath)) {
+				System.out.println("File does not exist.");
+				return;
+			}
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+		if (fileModified(file, name)) {
 			CommitTree tree = CommitTree.serialRead(); // TREE
 			tree.staged.add(name);
 			try {
@@ -184,7 +192,6 @@ public class Gitlet implements Serializable {
 		for (String name : head.fileMap.keySet()) {
 			boolean inDirectory = false;
 			for (File file : arrayOfFiles) {
-					// System.out.println(file.getName());
 				if (!file.isDirectory() && !file.isHidden()) {
 					if (head.fileMap.containsKey(file.getName()) || tree.staged.contains(name)) {
 						inDirectory = true;
@@ -192,10 +199,11 @@ public class Gitlet implements Serializable {
 						if (tree.staged.contains(name)) {
 							File f = new File(".gitlet/staged/" + name);
 							String oldSHA = Utils.sha1(Utils.readContents(f));
-							if (oldSHA.equals(newSHA)) {
+							if (!oldSHA.equals(newSHA)) {
 								modified.add(name + " (modified)");
 							}
-						} else if (!head.fileMap.containsValue(newSHA)) {
+						}
+						if (!head.fileMap.containsValue(newSHA)) {
 							modified.add(name + " (modified)");
 						}
 						break;
@@ -216,11 +224,11 @@ public class Gitlet implements Serializable {
 		// File folder = new File(System.getProperty("user.dir"));
 		// File[] listOfFiles = folder.listFiles();
 
-		Gitlet.getUntracked(head, tree);
+		getUntracked(tree);
 		for (String name : tree.untracked) {
 			if (!tree.staged.contains(name)) {
 				System.out.println(name);
-				
+
 			}
 		}
 
@@ -249,7 +257,8 @@ public class Gitlet implements Serializable {
 	// 	}
 	// }
 
-	private static void getUntracked(Commit head, CommitTree tree) {
+	private static void getUntracked(CommitTree tree) {
+		Commit head = tree.getHeadCommit();
 		File folder = new File(System.getProperty("user.dir"));
 		File[] arrayOfFiles = folder.listFiles();
 		for (File file : arrayOfFiles) {
@@ -497,6 +506,7 @@ public class Gitlet implements Serializable {
 		CommitTree tree = CommitTree.serialRead();
 		String sha = tree.branches.get(branch);
 		Commit newHead = Commit.shaToCommit(sha);
+		getUntracked(tree);
 		if (!tree.branches.containsKey(branch)) {
 			System.out.println("No such branch exists.");
 			return;
@@ -509,8 +519,6 @@ public class Gitlet implements Serializable {
 			for (String name : newHead.fileMap.keySet()) {
 				if (tree.untracked.contains(name)) {
 					System.out.println("There is an untracked file in the way; delete it or add it first.");
-					System.out.println(name);
-
 					return;
 				}
 			}
@@ -561,7 +569,6 @@ public class Gitlet implements Serializable {
 		CommitTree tree = CommitTree.serialRead();
 		if (!tree.branches.containsKey(name)) {
 			tree.branches.put(name, tree.head);
-			// tree.currBranch = name;
 			CommitTree.serialWrite(tree);
 		} else {
 			System.out.println("A branch with that name already exists.");
@@ -609,8 +616,138 @@ public class Gitlet implements Serializable {
 		CommitTree.serialWrite(tree);
 	}
 
-	/** Merge files from given branch into current branch. */
-	public void merge(CommitTree b) {
+	public static Commit findSplitPoint(String b1, String b2) {
+		CommitTree tree = CommitTree.serialRead();
+		HashSet<String> checked = new HashSet<String>();
+		String b1CurrSHA = tree.branches.get(b1);
+		Commit b1Curr;
+
+		for (String name : checked) {
+			System.out.println(name);
+		}
+
+		while (b1CurrSHA != null) {
+			b1Curr = Commit.shaToCommit(b1CurrSHA);
+			checked.add(b1CurrSHA);
+			b1CurrSHA = b1Curr.parentSHA;
+		}
+
+		String b2CurrSHA = tree.branches.get(b2);
+		Commit b2Curr;
+
+
+		while (b2CurrSHA != null) {
+			b2Curr = Commit.shaToCommit(b2CurrSHA);
+			if (checked.contains(b2CurrSHA)) {
+				return b2Curr;
+			}
+			b2CurrSHA = b2Curr.parentSHA;
+		}
+
+		return null;
 
 	}
+
+	/** Merge files from given branch into current branch. */
+	public static void merge(String b) {
+		CommitTree tree = CommitTree.serialRead();
+		getUntracked(tree);
+		Commit splitPoint = findSplitPoint(b, tree.currBranch);
+		String splitPointSHA = Commit.commitToSha(splitPoint);
+
+		String givenBranchSHA = tree.branches.get(b);
+		Commit givenBranchHead = Commit.shaToCommit(givenBranchSHA);
+		Commit currHead = tree.getHeadCommit();
+
+		String currHeadSHA = tree.head;
+		String currBranchName = tree.currBranch;
+
+		if (b.equals(tree.currBranch)) {
+			System.out.println("Cannot merge a branch with itself.");
+			return;
+		} else if (!tree.branches.containsKey(b)) {
+			System.out.println("A branch with that name does not exist.");
+			return;
+		} else if (tree.branches.get(b).equals(splitPointSHA)) {
+			System.out.println("Given branch is an ancestor of the current branch.");
+			return;
+		} else {
+			for (String name : splitPoint.fileMap.keySet()) {
+				if (tree.untracked.contains(name)) {
+					System.out.println("There is an untracked file in the way; delete it or add it first.");
+					return;
+				}
+			}
+			
+		}
+
+
+		if (tree.head.equals(splitPointSHA)) {
+			checkoutBranch(b);
+			tree.head = currHeadSHA;
+			tree.currBranch = currBranchName;
+			System.out.println("Current branch fast-forwarded.");
+		}
+
+		for (String name : givenBranchHead.fileMap.keySet()) {
+			if (!splitPoint.fileMap.containsKey(name)) {
+				checkout(givenBranchSHA, name);
+			}
+		}
+
+		HashSet<String> conflicting = new HashSet<String>();
+
+		for (String name : splitPoint.fileMap.keySet()) {
+			if (!currHead.fileMap.containsKey(name) || !givenBranchHead.fileMap.containsKey(name)) {
+				continue;
+			} else if (!currHead.fileMap.get(name).equals(splitPoint.fileMap.get(name))
+				&& !givenBranchHead.fileMap.get(name).equals(splitPoint.fileMap.get(name))) {
+					conflicting.add(name);
+
+					// File output = 
+
+					// File currFile = new File(Paths.get(".gitlet/blobs/" + currHead.fileMap.get(name)));
+					// File givenFile = new File(Paths.get(".gitlet/blobs/" + givenBranchHead.fileMap.get(name)));
+					// Reader currFileReader = Files.newBufferedReader(currFile.toPath());
+     //    			Reader givenFileReader = Files.newBufferedReader(givenFile.toPath());
+     //    			Writer destination = Files.newBufferedWriter(name.toPath()
+
+			} else if (!givenBranchHead.fileMap.get(name).equals(splitPoint.fileMap.get(name))) {
+				checkout(givenBranchSHA, name);
+			}
+		}
+
+		for (String name : conflicting) {
+
+		}
+
+
+		// HashSet<String> toCheck = new HashSet<String>();
+		// HashSet<String> inGiven = new HashSet<String>();
+		// HashSet<String> inCurr = new HashSet<String>();
+
+		// for (String name : givenBranchHead.fileMap.keySet()) {
+		// 	if (!splitPoint.fileMap.containsKey(name)) {
+		// 		inGiven.add(name);
+		// 	}
+		// }
+
+		// for (String name : currHead.fileMap.keySet()) {
+		// 	if (!splitPoint.fileMap.containsKey(name)) {
+		// 		inCurr.add(name);
+		// 	}
+		// }
+
+		// if () {
+			
+		// }
+		Gitlet.commit("Merged " + tree.currBranch + " with " + b + ".");
+	}
+
+	// public boolean givenFileModified(Commit currBranch, Commit givenBranch, Commit splitPoint) {
+	// 	if () {
+			
+	// 	}
+	// }
+
 }

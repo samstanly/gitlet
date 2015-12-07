@@ -30,7 +30,7 @@ import java.util.TreeMap;
 
 public class CommitTree implements Serializable {
 	protected String head;
-	protected Commit currCommit;
+
 	// protected LinkedList<String> commitList = new LinkedList<String>();
 
 	protected String currBranch;
@@ -43,6 +43,8 @@ public class CommitTree implements Serializable {
 	protected TreeSet<String> removed = new TreeSet<String>();
 
 	protected TreeSet<String> untracked = new TreeSet<String>();
+
+	protected TreeMap<TreeSet<String>, String> splitPoints = new TreeMap<TreeSet<String>, String>();
 
 
 

@@ -86,7 +86,6 @@ public class Main {
           break;
         case "checkout":
             if (args.length == 3 && args[1].equals("--")) {
-                System.out.println("here");
                 String filename = args[2];
                 Gitlet.checkout(filename);
             } else if (args.length == 2) {
@@ -125,7 +124,11 @@ public class Main {
           }
           break;
         case "merge":
-        	//branch name
+          if (args.length == 1) {
+            System.out.println("Please enter a branch.");
+          } else if (args.length == 2) {
+            Gitlet.merge(args[1]);
+          }
           break;
         default:
         	System.out.println("No command with that name exists.");

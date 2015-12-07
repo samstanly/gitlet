@@ -127,6 +127,7 @@ public class Commit implements Serializable {
 		System.out.println("Commit " + mySHA);
 		System.out.println(commitTime);
 		System.out.println(commitMsg);
+		System.out.println();
 	}
 
 
