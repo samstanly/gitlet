@@ -623,23 +623,27 @@ public class Gitlet implements Serializable {
                 }
             } else if (sp.fileMap.containsKey(name)) {
                 if (!sp.fileMap.get(name).equals(givenBrHead.fileMap.get(name))
-                    && !currHead.fileMap.containsKey(name)) {
+                    && (!currHead.fileMap.containsKey(name)
+                    || !currHead.fileMap.get(name).equals(sp.fileMap.get(name)))) {
                     conflicting.add(name);
                 }
             }
         }
-         for (String name : currHead.fileMap.keySet()) {
-            if (sp.fileMap.containsKey(name)
-                && !givenBrHead.fileMap.containsKey(name)) {
-                if (sp.fileMap.get(name).equals(currHead.fileMap.get(name))) {
+        for (String name : currHead.fileMap.keySet()) {
+            if (sp.fileMap.containsKey(name)) {
+                if (!givenBrHead.fileMap.containsKey(name)
+                    && sp.fileMap.get(name).equals(currHead.fileMap.get(name))) {
                     rm(name);
-                } else {
+                } else if (givenBrHead.fileMap.containsKey(name)
+                    && !sp.fileMap.get(name).equals(givenBrHead.fileMap.get(name))) {
                     conflicting.add(name);
                 }
+ 
             } else if (!sp.fileMap.containsKey(name)
                 && givenBrHead.fileMap.containsKey(name)
-                && !givenBrHead.fileMap.get(name).equals(currHead.fileMap.get(name))) {
-                    conflicting.add(name);
+                && !givenBrHead.fileMap.get(name).equals(
+                        currHead.fileMap.get(name))) {
+                conflicting.add(name);
             }
         }
         for (String name : conflicting) {
@@ -660,30 +664,26 @@ public class Gitlet implements Serializable {
         File givenFile = new File(".gitlet/blobs/"
                 + givenBrHead.fileMap.get(name));
         try {
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-                byte[] head = "<<<<<<< HEAD \n".getBytes();
-                outputStream.write(head);
-                if (currFile.exists()) {
-                    byte[] currToWrite = Utils.readContents(currFile);
-                    outputStream.write(currToWrite);
-                }
-                byte[] divide = "======= \n".getBytes();
-                outputStream.write(divide);
-                if (givenFile.exists()) {
-                    byte[] givenToWrite = Utils.readContents(givenFile);
-                    outputStream.write(givenToWrite);
-                }
-                byte[] end = ">>>>>>>".getBytes();
-                outputStream.write(end);
-
-
-                byte[] toWrite = outputStream.toByteArray();
-                Utils.writeContents(output, toWrite);
-                
-            } catch (IOException e) {
-                e.printStackTrace();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] head = "<<<<<<< HEAD \n".getBytes();
+            outputStream.write(head);
+            if (currFile.exists()) {
+                byte[] currToWrite = Utils.readContents(currFile);
+                outputStream.write(currToWrite);
             }
+            byte[] divide = "======= \n".getBytes();
+            outputStream.write(divide);
+            if (givenFile.exists()) {
+                byte[] givenToWrite = Utils.readContents(givenFile);
+                outputStream.write(givenToWrite);
+            }
+            byte[] end = ">>>>>>>".getBytes();
+            outputStream.write(end);
+            byte[] toWrite = outputStream.toByteArray();
+            Utils.writeContents(output, toWrite);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 
