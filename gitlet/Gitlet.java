@@ -343,14 +343,15 @@ public class Gitlet implements Serializable {
 
             while (curr.parentSHA != null) {
                 if (currSHA.equals(commitID) 
-                        || currSHA.substring(0, 5).equals(commitID)) {
+                        || currSHA.substring(0, 6).equals(commitID)) {
                     getFile(name, curr);
                     return;
                 }
                 currSHA = curr.parentSHA;
                 curr = Commit.shaToCommit(curr.parentSHA);
             }
-            if (currSHA.equals(commitID)) {
+            if (currSHA.equals(commitID)
+                    || currSHA.substring(0, 6).equals(commitID)) {
                 getFile(name, curr);
                 return;
             }
@@ -360,13 +361,15 @@ public class Gitlet implements Serializable {
 
     /** Checkouts branch BRANCH. */
     public static void checkoutBranch(String branch) {
-        String sha = tree.branches.get(branch);
-        Commit newHead = Commit.shaToCommit(sha);
         getUntracked();
         if (!tree.branches.containsKey(branch)) {
             System.out.println("No such branch exists.");
             return;
-        } else if (branch.equals(tree.currBranch)) {
+        }
+        String sha = tree.branches.get(branch);
+        System.out.println(sha);
+        Commit newHead = Commit.shaToCommit(sha);
+        if (branch.equals(tree.currBranch)) {
             System.out.println("No need to checkout the current branch.");
             return;
         } else {
@@ -404,6 +407,7 @@ public class Gitlet implements Serializable {
     /** Gets the file given the NAME of the file from the commit C. */
     public static void getFile(String name, Commit c) {
         if (c.fileMap.containsKey(name)) {
+            System.out.println("existssss");
             try {
                 Files.copy(Paths.get(".gitlet/blobs/" + c.fileMap.get(name)),
                     Paths.get(name), StandardCopyOption.REPLACE_EXISTING);
