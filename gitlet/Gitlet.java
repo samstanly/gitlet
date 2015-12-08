@@ -65,7 +65,11 @@ public class Gitlet implements Serializable {
             System.out.println(e);
         }
         if (fileModified(file, name)) {
-            tree.staged.add(name);
+            if (tree.removed.contains(name)) {
+                tree.removed.remove(name);
+            } else {
+                tree.staged.add(name);
+            }
             try {
                 Files.copy(Paths.get(name), Paths.get(".gitlet/staged/" + name),
                         StandardCopyOption.REPLACE_EXISTING);

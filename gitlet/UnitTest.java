@@ -40,11 +40,9 @@ public class UnitTest {
         File s = new File(STAGED_DIR);
         File b = new File(".gitlet/blobs");
         File c = new File(COMMIT_DIR);
-        File tree = new File(".gitlet/tree.ser");
         assertTrue(s.exists());
         assertTrue(b.exists());
         assertTrue(c.exists());
-        assertTrue(tree.exists());
     }
 
     /** Tests basic commands such as add, remove, and commit. */
