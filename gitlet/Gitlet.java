@@ -164,6 +164,7 @@ public class Gitlet implements Serializable {
                 System.out.println(name);
             }
         }
+        System.out.println();
     }
 
     /** Gets all the untracked files. */
@@ -237,7 +238,7 @@ public class Gitlet implements Serializable {
         } else if (args.length == 2) {
             Gitlet.commit(args[1]);
         } else if (args.length > 2) {
-            System.out.println("Quote message.");
+            System.out.println("Please quote your message.");
         }
     }
 
@@ -317,7 +318,7 @@ public class Gitlet implements Serializable {
     /** Uses the correct find method based on input ARGS. */
     public static void find(String... args) {
         if (args.length == 1) {
-            System.out.println("Please enter commit message.");
+            System.out.println("Please enter commit message to find.");
         } else if (args.length == 2) {
             Gitlet.find(args[1]);
         } else if (args.length > 2) {
@@ -462,9 +463,7 @@ public class Gitlet implements Serializable {
     }
 
     /** Uses the branch method based on input ARGS. */
-    public static void branch(String[]...args) {
-        System.out.println(args.length);
-        System.out.println(args[0]);
+    public static void branch(String...args) {
         if (args.length == 1) {
             System.out.println("Please enter a name for the branch.");
         } else if (args.length == 2) {
