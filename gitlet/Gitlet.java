@@ -31,7 +31,7 @@ public class Gitlet implements Serializable {
         boolean e = dir.mkdir();
         if (!e) {
             System.out.println("gitlet version-control system already"
-                + "exists in the current directory");
+                + " exists in the current directory");
             System.exit(0);
         } else {
             Commit initial = new Commit("initial commit", null);
