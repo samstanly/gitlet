@@ -1,24 +1,4 @@
 package gitlet;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.Serializable;
-import java.util.Date;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.BufferedReader;
-import java.util.ArrayList;
-import java.util.Scanner;
-import java.util.HashSet;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import ucb.util.CommandArgs;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-
 
 /** Driver class for Gitlet, the tiny stupid version-control system.
  *  @author Sam Steady and Jamie Ni
@@ -27,116 +7,97 @@ public class Main {
 
     /** Usage: java gitlet.Main ARGS, where ARGS contains
      *  <COMMAND> <OPERAND> .... */
-
     public static void main(String... args) {
-      if (args.length == 0) {
-        System.out.println("Please enter a command.");
-        System.exit(1);
-      }
-      Gitlet.startUp();
-      System.out.println(Gitlet.tree);
-      System.out.println("000000");
-      switch (args[0]) {
-      	case "init":
-          if (args.length == 1) {
+        if (args.length == 0) {
+            System.out.println("Please enter a command.");
+            System.exit(1);
+        }
+        Gitlet.startUp();
+        switch (args[0]) {
+        case "init":
             Gitlet.init();
-          }
-          break;
+            break;
         case "add":
-          if (args.length == 2) {
-            Gitlet.add(args[1]);
-          }
-          break;
+            if (args.length == 2) {
+                Gitlet.add(args[1]);
+            }
+            break;
         case "commit":
-          if (args.length == 1) {
-            System.out.println("Please enter a commit message.");
-          }
-          if (args.length == 2) {
-            Gitlet.commit(args[1]);
-          }
-          if (args.length > 2) {
-            System.out.println("Please use quotes around your commit message.");
-          }
-          break;
-        case "rm": 
-          if (args.length == 1) {
-            System.out.println("Please enter a file to remove.");
-          } 
-          if (args.length == 2) {
-            Gitlet.rm(args[1]);
-          }
-          break;
+            if (args.length == 1) {
+                System.out.println("Please enter a commit message.");
+            } else if (args.length == 2) {
+                Gitlet.commit(args[1]);
+            } else if (args.length > 2) {
+                System.out.println("Quote message.");
+            }
+            break;
+        case "rm":
+            if (args.length == 1) {
+                System.out.println("Please enter a file to remove.");
+            } else if (args.length == 2) {
+                Gitlet.rm(args[1]);
+            }
+            break;
         case "log":
-          Gitlet.log();
-          break;
+            Gitlet.log();
+            break;
         case "global-log":
-          Gitlet.globalLog();
-          break;
+            Gitlet.globalLog();
+            break;
         case "find":
-          if (args.length == 1) {
-              System.out.println("Please enter commit message.");
-          }
-          if (args.length == 2) {
-            Gitlet.find(args[1]);
-          }
-          if (args.length > 2) {
-            System.out.println("Please use quotes arond your commit message.");
-          }
-          break;
+            if (args.length == 1) {
+                System.out.println("Please enter commit message.");
+            } else if (args.length == 2) {
+                Gitlet.find(args[1]);
+            } else if (args.length > 2) {
+                System.out.println("Quote message.");
+            }
+            break;
         case "status":
-          Gitlet.status();
-          break;
+            Gitlet.status();
+            break;
         case "checkout":
             if (args.length == 3 && args[1].equals("--")) {
-                String filename = args[2];
-                Gitlet.checkout(filename);
+                Gitlet.checkout(args[2]);
             } else if (args.length == 2) {
-                String branchName = args[1];
-                Gitlet.checkoutBranch(branchName);
-            } else if (args.length == 4) {
-              if (args[2].equals("--")) {
-                String commitID = args[1];
-                String commitFile = args[3];
-                Gitlet.checkout(commitID, commitFile);
-              }
+                Gitlet.checkoutBranch(args[1]);
+            } else if (args.length == 4 && (args[2].equals("--"))) {
+                Gitlet.checkout(args[1], args[3]);
             }
             break;
         case "branch":
-          if (args.length == 1) {
-            System.out.println("Please enter a name for the branch.");
-          }
-        	else if (args.length == 2) {
-            Gitlet.branch(args[1]);
-          }
-          break;
+            if (args.length == 1) {
+                System.out.println("Please enter a name for the branch.");
+            } else if (args.length == 2) {
+                Gitlet.branch(args[1]);
+            }
+            break;
         case "rm-branch":
-        	if (args.length == 1) {
-            System.out.println("Please enter branch you want to remove.");
-          }
-          else if (args.length == 2) {
-            Gitlet.removeBranch(args[1]);
-          }
-          break;
+            if (args.length == 1) {
+                System.out.println("Enter branch to remove.");
+            } else if (args.length == 2) {
+                Gitlet.removeBranch(args[1]);
+            }
+            break;
         case "reset":
-          //commit id
-          if (args.length == 1) {
-            System.out.println("Please enter commit ID.");
-          } else if (args.length == 2) {
-            Gitlet.reset(args[1]);
-          }
-          break;
+            if (args.length == 1) {
+                System.out.println("Please enter commit ID.");
+            } else if (args.length == 2) {
+                Gitlet.reset(args[1]);
+            }
+            break;
         case "merge":
-          if (args.length == 1) {
-            System.out.println("Please enter a branch.");
-          } else if (args.length == 2) {
-            Gitlet.merge(args[1]);
-          }
-          break;
+            if (args.length == 1) {
+                System.out.println("Please enter a branch.");
+            } else if (args.length == 2) {
+                Gitlet.merge(args[1]);
+            }
+            break;
         default:
-        	System.out.println("No command with that name exists.");
-          return;
-      }
-      CommitTree.serialWrite(Gitlet.tree);
+            System.out.println("No command with that name exists.");
+            return;
+        }
+        CommitTree.serialWrite(Gitlet.tree);
     }
 
     /** Report an error and exit program with EXIT as the

@@ -1,86 +1,73 @@
 package gitlet;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.Serializable;
-import java.util.Date;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.BufferedReader;
-import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.HashSet;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import ucb.util.CommandArgs;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.LinkedList;
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectInput;
-import java.util.HashMap;
 import java.util.TreeSet;
 import java.util.TreeMap;
 
+/** CommitTree class for Gitlet, the tiny stupid version-control system.
+ *  @author Sam Steady and Jamie Ni
+ */
 public class CommitTree implements Serializable {
-	protected String head;
+    /** The head commit SHA. */
+    protected String head;
+    /** The current branch. */
+    protected String currBranch;
+    /** A set of the staged file names. */
+    protected TreeSet<String> staged = new TreeSet<String>();
+    /** A set of file names not to commit. */
+    protected HashSet<String> notToCommit =  new HashSet<String>();
+    /** A tree map of branches and their SHAs. */
+    protected TreeMap<String, String> branches = new TreeMap<String, String>();
+    /** A set of file names for removed. */
+    protected TreeSet<String> removed = new TreeSet<String>();
+    /** A set of untracked file names. */
+    protected TreeSet<String> untracked = new TreeSet<String>();
 
-	// protected LinkedList<String> commitList = new LinkedList<String>();
+    /** Serializes the current version of the CommitTree B. */
+    protected static void serialWrite(CommitTree b) {
+        try {
+            ObjectOutput output = new ObjectOutputStream(
+                            new FileOutputStream(
+                                ".gitlet/tree.ser"));
+            output.writeObject(b);
+            output.close();
+        } catch (IOException e) {
+            System.out.println("Error in serialWrite.");
+        }
+    }
 
-	protected String currBranch;
+    /** Returns and deserializes the CommitTree. */
+    protected static CommitTree serialRead() {
+        CommitTree b = null;
+        try {
+            ObjectInput input = new ObjectInputStream(
+                                new FileInputStream(
+                                    ".gitlet/tree.ser"));
 
-	protected TreeSet<String> staged = new TreeSet<String>();
-	protected HashSet<String> notToCommit =  new HashSet<String>();
+            try {
+                b = (CommitTree) input.readObject();
+                input.close();
+            } catch (ClassNotFoundException e2) {
+                input.close();
+                System.out.println("ClassNotFoundException in serialRead");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error in CommitTree serialRead.");
 
-	protected TreeMap<String, String> branches = new TreeMap<String, String>();
+        }
+        return b;
+    }
 
-	protected TreeSet<String> removed = new TreeSet<String>();
-
-	protected TreeSet<String> untracked = new TreeSet<String>();
-
-	protected TreeMap<TreeSet<String>, String> splitPoints = new TreeMap<TreeSet<String>, String>();
-
-
-
-	protected static void serialWrite(CommitTree b) {
-		try {
-			ObjectOutput output = new ObjectOutputStream(new FileOutputStream(".gitlet/tree.ser"));
-			output.writeObject(b);
-			output.close();
-		} catch (IOException e) {
-			System.out.println("Error in serialWrite.");
-		}
-	}
-
-	protected static CommitTree serialRead() {
-		CommitTree b = null;
-		try {
-			ObjectInput input = new ObjectInputStream(new FileInputStream(".gitlet/tree.ser"));
-
-			try {
-				b = (CommitTree) input.readObject();
-				input.close();
-			} catch (ClassNotFoundException e2) {
-				input.close();
-				System.out.println("ClassNotFoundException in serialRead");
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Error in CommitTree serialRead.");
-
-		}
-		return b;
-	}
-
-
-	Commit getHeadCommit() {
-		return Commit.shaToCommit(head);
-	}
-
+    /** Returns the head commit. */
+    Commit getHeadCommit() {
+        return Commit.shaToCommit(head);
+    }
 }
