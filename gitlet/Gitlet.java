@@ -463,6 +463,8 @@ public class Gitlet implements Serializable {
 
     /** Uses the branch method based on input ARGS. */
     public static void branch(String[]...args) {
+        System.out.println(args.length);
+        System.out.println(args[0]);
         if (args.length == 1) {
             System.out.println("Please enter a name for the branch.");
         } else if (args.length == 2) {
@@ -642,7 +644,6 @@ public class Gitlet implements Serializable {
     public static void resolveConflict(String name, Commit currHead,
             Commit givenBrHead) {
         File output = new File(name);
-        System.out.println(output);
         File currFile = new File(".gitlet/blobs/" + currHead.fileMap.get(name));
         File givenFile = new File(".gitlet/blobs/"
                 + givenBrHead.fileMap.get(name));
