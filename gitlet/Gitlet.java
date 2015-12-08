@@ -230,6 +230,26 @@ public class Gitlet implements Serializable {
         Commit.serialWrite(c, tree.head);
     }
 
+    /** Uses the correct commit method based on input ARGS. */
+    public static void commit(String... args) {
+        if (args.length == 1 || args[1].trim().equals("")) {
+            System.out.println("Please enter a commit message.");
+        } else if (args.length == 2) {
+            Gitlet.commit(args[1]);
+        } else if (args.length > 2) {
+            System.out.println("Quote message.");
+        }
+    }
+
+    /** Uses the remove method based on input ARGS. */
+    public static void rm(String[] args) {
+        if (args.length == 1) {
+            System.out.println("Please enter a file to remove.");
+        } else if (args.length == 2) {
+            Gitlet.rm(args[1]);
+        }
+    }
+
     /**
      * Untrack file and will not be included in the next commit.
      * @param name file name to remove
@@ -294,6 +314,17 @@ public class Gitlet implements Serializable {
         }
     }
 
+    /** Uses the correct find method based on input ARGS. */
+    public static void find(String... args) {
+        if (args.length == 1) {
+            System.out.println("Please enter commit message.");
+        } else if (args.length == 2) {
+            Gitlet.find(args[1]);
+        } else if (args.length > 2) {
+            System.out.println("Please use quotes around the message.");
+        }
+    }
+
     /**
      * Prints out the ids of all commits that have the given
      * commit message MSG.
@@ -329,6 +360,19 @@ public class Gitlet implements Serializable {
         }
     }
 
+    /** Uses the correct method based on input ARGS. */
+    public static void checkout(String... args) {
+        if (args.length == 3 && args[1].equals("--")) {
+            Gitlet.checkout(args[2]);
+        } else if (args.length == 2) {
+            Gitlet.checkoutBranch(args[1]);
+        } else if (args.length == 4 && (args[2].equals("--"))) {
+            Gitlet.checkout(args[1], args[3]);
+        } else {
+            System.out.println("Incorrect operands.");
+        }
+    }
+
     /** Checkouts using file name NAME. */
     public static void checkout(String name) {
         Commit head = tree.getHeadCommit();
@@ -342,7 +386,7 @@ public class Gitlet implements Serializable {
             String currSHA = branchSHA;
 
             while (curr.parentSHA != null) {
-                if (currSHA.equals(commitID) 
+                if (currSHA.equals(commitID)
                         || currSHA.substring(0, 6).equals(commitID)) {
                     getFile(name, curr);
                     return;
@@ -367,7 +411,6 @@ public class Gitlet implements Serializable {
             return;
         }
         String sha = tree.branches.get(branch);
-        System.out.println(sha);
         Commit newHead = Commit.shaToCommit(sha);
         if (branch.equals(tree.currBranch)) {
             System.out.println("No need to checkout the current branch.");
@@ -407,7 +450,6 @@ public class Gitlet implements Serializable {
     /** Gets the file given the NAME of the file from the commit C. */
     public static void getFile(String name, Commit c) {
         if (c.fileMap.containsKey(name)) {
-            System.out.println("existssss");
             try {
                 Files.copy(Paths.get(".gitlet/blobs/" + c.fileMap.get(name)),
                     Paths.get(name), StandardCopyOption.REPLACE_EXISTING);
@@ -419,13 +461,29 @@ public class Gitlet implements Serializable {
         }
     }
 
-
+    /** Uses the branch method based on input ARGS. */
+    public static void branch(String[]...args) {
+        if (args.length == 1) {
+            System.out.println("Please enter a name for the branch.");
+        } else if (args.length == 2) {
+            Gitlet.branch(args[1]);
+        }
+    }
     /** Creates a new branch with the given name NAME. */
     public static void branch(String name) {
         if (!tree.branches.containsKey(name)) {
             tree.branches.put(name, tree.head);
         } else {
             System.out.println("A branch with that name already exists.");
+        }
+    }
+
+    /** Uses the rm-branch method based on input ARGS. */
+    public static void removeBranch(String[] args) {
+        if (args.length == 1) {
+            System.out.println("Enter branch to remove.");
+        } else if (args.length == 2) {
+            Gitlet.removeBranch(args[1]);
         }
     }
 
@@ -437,6 +495,15 @@ public class Gitlet implements Serializable {
             System.out.println("Cannot remove the current branch.");
         } else {
             tree.branches.remove(name, tree.head);
+        }
+    }
+
+    /** Uses the reset method based on input ARGS. */
+    public static void reset(String[]...args) {
+        if (args.length == 1) {
+            System.out.println("Please enter commit ID.");
+        } else if (args.length == 2) {
+            Gitlet.reset(args[1]);
         }
     }
 
@@ -501,13 +568,22 @@ public class Gitlet implements Serializable {
         return null;
     }
 
+    /** Uses the merge method based on input ARGS. */
+    public static void merge(String[]...args) {
+        if (args.length == 1) {
+            System.out.println("Please enter a branch.");
+        } else if (args.length == 2) {
+            Gitlet.merge(args[1]);
+        }
+    }
+
     /** Merge files from given branch B into current branch. */
     public static void merge(String b) {
         getUntracked();
-        Commit splitPoint = findSplitPoint(b, tree.currBranch);
-        String splitPointSHA = Commit.commitToSha(splitPoint);
-        String givenBranchSHA = tree.branches.get(b);
-        Commit givenBranchHead = Commit.shaToCommit(givenBranchSHA);
+        Commit sp = findSplitPoint(b, tree.currBranch);
+        String spSHA = Commit.commitToSha(sp);
+        String givenBrSHA = tree.branches.get(b);
+        Commit givenBrHead = Commit.shaToCommit(givenBrSHA);
         Commit currHead = tree.getHeadCommit();
         String currHeadSHA = tree.head;
         String currBranchName = tree.currBranch;
@@ -517,65 +593,43 @@ public class Gitlet implements Serializable {
         } else if (!tree.branches.containsKey(b)) {
             System.out.println("A branch with that name does not exist.");
             return;
-        } else if (tree.branches.get(b).equals(splitPointSHA)) {
-            System.out.println("Given branch is an ancestor of the current branch.");
+        } else if (tree.branches.get(b).equals(spSHA)) {
+            System.out.println("Given branch is an ancestor of the"
+                + "current branch.");
             return;
         } else {
-            for (String name : splitPoint.fileMap.keySet()) {
+            for (String name : sp.fileMap.keySet()) {
                 if (tree.untracked.contains(name)) {
-                    System.out.println("There is an untracked file in the way; delete it or add it first.");
+                    System.out.println("There is an untracked file in the way;"
+                            + " delete it or add it first.");
                     return;
                 }
             }
         }
-        if (tree.head.equals(splitPointSHA)) {
+        if (tree.head.equals(spSHA)) {
             checkoutBranch(b);
             tree.head = currHeadSHA;
             tree.currBranch = currBranchName;
             System.out.println("Current branch fast-forwarded.");
         }
         HashSet<String> conflicting = new HashSet<String>();
-     for (String name : givenBranchHead.fileMap.keySet()) {
-            if (!splitPoint.fileMap.containsKey(name)) {
+        for (String name : givenBrHead.fileMap.keySet()) {
+            if (!sp.fileMap.containsKey(name)) {
                 if (!currHead.fileMap.containsKey(name)) {
-                    checkout(givenBranchSHA, name);
+                    checkout(givenBrSHA, name);
                     add(name);
                 } else if (currHead.fileMap.containsKey(name)) {
                     conflicting.add(name);
                 }
-            } else if (splitPoint.fileMap.containsKey(name)) {
-                if (!splitPoint.fileMap.get(name).equals(givenBranchHead.fileMap.get(name))
+            } else if (sp.fileMap.containsKey(name)) {
+                if (!sp.fileMap.get(name).equals(givenBrHead.fileMap.get(name))
                     && !currHead.fileMap.containsKey(name)) {
                     conflicting.add(name);
                 }
             }
         }
-        for (String name : currHead.fileMap.keySet()) {
-            if (splitPoint.fileMap.containsKey(name)
-                && !givenBranchHead.fileMap.containsKey(name)) {
-                if (splitPoint.fileMap.get(name).equals(currHead.fileMap.get(name))) {
-                    rm(name);
-                } else {
-                    conflicting.add(name);
-                }
-            } else if (!splitPoint.fileMap.containsKey(name)
-                && givenBranchHead.fileMap.containsKey(name)
-                && !givenBranchHead.fileMap.get(name).equals(currHead.fileMap.get(name))) {
-                    conflicting.add(name);
-            }
-        }
-        for (String name : splitPoint.fileMap.keySet()) {
-            if (!currHead.fileMap.containsKey(name) || !givenBranchHead.fileMap.containsKey(name)) {
-                continue;
-            } else if (!currHead.fileMap.get(name).equals(splitPoint.fileMap.get(name))
-                && !givenBranchHead.fileMap.get(name).equals(splitPoint.fileMap.get(name))) {
-                    conflicting.add(name);
-            } else if (!givenBranchHead.fileMap.get(name).equals(splitPoint.fileMap.get(name))) {
-                checkout(givenBranchSHA, name);
-            }
-        }
         for (String name : conflicting) {
-            resolveConflict(name, currHead, givenBranchHead);
+            resolveConflict(name, currHead, givenBrHead);
         }
         if (conflicting.size() > 0) {
             System.out.println("Encountered a merge conflict.");
@@ -584,29 +638,32 @@ public class Gitlet implements Serializable {
         }
     }
 
-    /** Resolves conflict in filename NAME in commit CURRHEAD in GIVENBRANCHHEAD */
-    public static void resolveConflict(String name, Commit currHead, Commit givenBranchHead) {
+    /** Resolves conflict in filename NAME in commit CURRHEAD in GIVENBRHEAD. */
+    public static void resolveConflict(String name, Commit currHead,
+            Commit givenBrHead) {
         File output = new File(name);
-            System.out.println(output);
-            File currFile = new File(".gitlet/blobs/" + currHead.fileMap.get(name));
-            File givenFile = new File(".gitlet/blobs/" + givenBranchHead.fileMap.get(name));
-            try {
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                byte[] head = "<<<<<<< HEAD \n".getBytes();
-                byte[] currToWrite = Utils.readContents(currFile);
-                byte[] divide = "======= \n".getBytes();
-                byte[] givenToWrite = Utils.readContents(givenFile);
-                byte[] end = ">>>>>>>".getBytes();
-                outputStream.write(head);
-                outputStream.write(currToWrite);
-                outputStream.write(divide);
-                outputStream.write(givenToWrite);
-                outputStream.write(end);
-                byte[] toWrite = outputStream.toByteArray();
-                Utils.writeContents(output, toWrite);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        System.out.println(output);
+        File currFile = new File(".gitlet/blobs/" + currHead.fileMap.get(name));
+        File givenFile = new File(".gitlet/blobs/"
+                + givenBrHead.fileMap.get(name));
+        try {
+            ByteArrayOutputStream outputStream
+                = new ByteArrayOutputStream();
+            byte[] head = "<<<<<<< HEAD \n".getBytes();
+            byte[] currToWrite = Utils.readContents(currFile);
+            byte[] divide = "======= \n".getBytes();
+            byte[] givenToWrite = Utils.readContents(givenFile);
+            byte[] end = ">>>>>>>".getBytes();
+            outputStream.write(head);
+            outputStream.write(currToWrite);
+            outputStream.write(divide);
+            outputStream.write(givenToWrite);
+            outputStream.write(end);
+            byte[] toWrite = outputStream.toByteArray();
+            Utils.writeContents(output, toWrite);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 

@@ -48,6 +48,7 @@ public class UnitTest {
     /** Tests basic commands such as add, remove, and commit. */
     @Test
     public void testBasic() {
+        Gitlet.init();
         String name = "hello.txt";
         String contents = "hello";
         createFile(name, contents);

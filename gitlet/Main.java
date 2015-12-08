@@ -15,7 +15,9 @@ public class Main {
         Gitlet.startUp();
         switch (args[0]) {
         case "init":
-            Gitlet.init();
+            if (args.length == 1) {
+                Gitlet.init();
+            }
             break;
         case "add":
             if (args.length == 2) {
@@ -23,77 +25,41 @@ public class Main {
             }
             break;
         case "commit":
-            if (args.length == 1 || args[1].trim().equals("")) {
-                System.out.println("Please enter a commit message.");
-            } else if (args.length == 2) {
-                Gitlet.commit(args[1]);
-            } else if (args.length > 2) {
-                System.out.println("Quote message.");
-            }
+            Gitlet.commit(args);
             break;
         case "rm":
-            if (args.length == 1) {
-                System.out.println("Please enter a file to remove.");
-            } else if (args.length == 2) {
-                Gitlet.rm(args[1]);
-            }
+            Gitlet.rm(args);
             break;
         case "log":
-            Gitlet.log();
+            if (args.length == 1) {
+                Gitlet.log();
+            }
             break;
         case "global-log":
-            Gitlet.globalLog();
+            if (args.length == 1) {
+                Gitlet.globalLog();
+            }
             break;
         case "find":
-            if (args.length == 1) {
-                System.out.println("Please enter commit message.");
-            } else if (args.length == 2) {
-                Gitlet.find(args[1]);
-            } else if (args.length > 2) {
-                System.out.println("Quote message.");
-            }
+            Gitlet.find(args);
             break;
         case "status":
             Gitlet.status();
             break;
         case "checkout":
-            if (args.length == 3 && args[1].equals("--")) {
-                Gitlet.checkout(args[2]);
-            } else if (args.length == 2) {
-                Gitlet.checkoutBranch(args[1]);
-            } else if (args.length == 4 && (args[2].equals("--"))) {
-                Gitlet.checkout(args[1], args[3]);
-            } else {
-                System.out.println("Incorrect operands.");
-            }
+            Gitlet.checkout(args);
             break;
         case "branch":
-            if (args.length == 1) {
-                System.out.println("Please enter a name for the branch.");
-            } else if (args.length == 2) {
-                Gitlet.branch(args[1]);
-            }
+            Gitlet.branch(args);
             break;
         case "rm-branch":
-            if (args.length == 1) {
-                System.out.println("Enter branch to remove.");
-            } else if (args.length == 2) {
-                Gitlet.removeBranch(args[1]);
-            }
+            Gitlet.removeBranch(args);
             break;
         case "reset":
-            if (args.length == 1) {
-                System.out.println("Please enter commit ID.");
-            } else if (args.length == 2) {
-                Gitlet.reset(args[1]);
-            }
+            Gitlet.reset(args);
             break;
         case "merge":
-            if (args.length == 1) {
-                System.out.println("Please enter a branch.");
-            } else if (args.length == 2) {
-                Gitlet.merge(args[1]);
-            }
+            Gitlet.merge(args);
             break;
         default:
             System.out.println("No command with that name exists.");
@@ -101,22 +67,4 @@ public class Main {
         }
         CommitTree.serialWrite(Gitlet.tree);
     }
-
-    /** Report an error and exit program with EXIT as the
-     *  exit code if _strict is false; otherwise exit with code 2.
-     *  FORMAT is the message format (as for printf), and ARGS any
-     *  additional arguments. */
-    static void error(int exit, String format, Object... args) {
-        error(format, args);
-        System.exit(exit);
-    }
-
-    /** Report an error.  If _strict, then exit (code 2).  Otherwise,
-     *  simply return. FORMAT is the message format (as for printf),
-     *  and ARGS any additional arguments. */
-    static void error(String format, Object... args) {
-        System.err.print("Error: ");
-        System.err.printf(format, args);
-    }
-
 }
