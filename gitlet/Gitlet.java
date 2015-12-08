@@ -54,7 +54,6 @@ public class Gitlet implements Serializable {
     /** Adds files to storing directory given filename NAME. */
     static void add(String name) {
         File file = new File(name);
-
         String filepath = System.getProperty("user.dir") + "/" + name;
         try {
             if (!file.exists() || !file.getCanonicalPath().equals(filepath)) {
@@ -267,7 +266,7 @@ public class Gitlet implements Serializable {
                 tree.removed.add(name);
                 Files.delete(Paths.get(name));
             } catch (IOException e) {
-                System.out.println("Cannot delete.");
+                tree.removed.add(name);
             }
         } else if (tree.staged.contains(name)) {
             tree.staged.remove(name);
