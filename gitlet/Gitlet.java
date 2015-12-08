@@ -535,19 +535,19 @@ public class Gitlet implements Serializable {
             System.out.println("Current branch fast-forwarded.");
         }
         HashSet<String> conflicting = new HashSet<String>();
-        for (String name : givenBranchHead.fileMap.keySet()) {
+     for (String name : givenBranchHead.fileMap.keySet()) {
             if (!splitPoint.fileMap.containsKey(name)) {
-                if (splitPoint.fileMap.get(name).equals(givenBranchHead.fileMap.get(name))
-                && !currHead.fileMap.containsKey(name)) {
+                if (!currHead.fileMap.containsKey(name)) {
                     checkout(givenBranchSHA, name);
                     add(name);
                 } else if (currHead.fileMap.containsKey(name)) {
                     conflicting.add(name);
                 }
-            } else if (splitPoint.fileMap.containsKey(name)
-                && !splitPoint.fileMap.get(name).equals(givenBranchHead.fileMap.get(name))
-                && !currHead.fileMap.containsKey(name)) {
+            } else if (splitPoint.fileMap.containsKey(name)) {
+                if (!splitPoint.fileMap.get(name).equals(givenBranchHead.fileMap.get(name))
+                    && !currHead.fileMap.containsKey(name)) {
                     conflicting.add(name);
+                }
             }
         }
         for (String name : currHead.fileMap.keySet()) {
@@ -559,8 +559,9 @@ public class Gitlet implements Serializable {
                     conflicting.add(name);
                 }
             } else if (!splitPoint.fileMap.containsKey(name)
-                && givenBranchHead.fileMap.containsKey(name)) {
-                conflicting.add(name);
+                && givenBranchHead.fileMap.containsKey(name)
+                && !givenBranchHead.fileMap.get(name).equals(currHead.fileMap.get(name))) {
+                    conflicting.add(name);
             }
         }
         for (String name : splitPoint.fileMap.keySet()) {
