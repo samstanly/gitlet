@@ -33,7 +33,7 @@ public class Main {
         System.out.println("Please enter a command.");
         System.exit(1);
       }
-      // Gitlet.startUp();
+      Gitlet.startUp();
       switch (args[0]) {
       	case "init":
           if (args.length == 1) {

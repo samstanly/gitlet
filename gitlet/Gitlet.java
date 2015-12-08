@@ -27,17 +27,24 @@ import java.nio.file.FileAlreadyExistsException;
 import java.util.TreeSet;
 import java.util.Arrays;
 import java.nio.file.NoSuchFileException;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayOutputStream;
 
 
 public class Gitlet implements Serializable {
 
-	// static CommitTree tree = null;
+	static CommitTree tree = null;
 
-	// static void startUp() {
-	// 	if (initialized) {
-	// 		tree = CommitTree.serialRead();
-	// 	}
-	// }
+	static void startUp() {
+		File gitlet = new File(".gitlet/")
+		if (gitlet.exists()) {
+			tree = CommitTree.serialRead();
+		}
+	}
+
+
 
 
 	/** Initalizes gitlet. */
@@ -193,22 +200,43 @@ public class Gitlet implements Serializable {
 			boolean inDirectory = false;
 			for (File file : arrayOfFiles) {
 				if (!file.isDirectory() && !file.isHidden()) {
-					if (head.fileMap.containsKey(file.getName()) || tree.staged.contains(name)) {
+					if (file.getName().equals(name)) {
 						inDirectory = true;
 						String newSHA = Utils.sha1(Utils.readContents(file));
-						if (tree.staged.contains(name)) {
+						if (!head.fileMap.get(name).equals(newSHA) && !tree.staged.contains(name)) {
+							modified.add(name + " (modified)");
+						} else if (tree.staged.contains(name)) {
 							File f = new File(".gitlet/staged/" + name);
 							String oldSHA = Utils.sha1(Utils.readContents(f));
-							if (!oldSHA.equals(newSHA)) {
+							if (!newSHA.equals(oldSHA)) {
 								modified.add(name + " (modified)");
 							}
+
 						}
-						if (!head.fileMap.containsValue(newSHA)) {
-							modified.add(name + " (modified)");
-						}
-						break;
 					}
 				}
+
+
+
+				// 	if (head.fileMap.containsKey(file.getName()) || tree.staged.contains(name)) {
+				// 		inDirectory = true;
+				// 		String newSHA = Utils.sha1(Utils.readContents(file));
+				// 		if (tree.staged.contains(name)) {
+				// 			File f = new File(".gitlet/staged/" + name);
+				// 			String oldSHA = Utils.sha1(Utils.readContents(f));
+				// 			if (!oldSHA.equals(newSHA)) {
+				// 				modified.add(name + " (modified)");
+				// 			}
+				// 		}
+				// 		if (!head.fileMap.containsValue(newSHA)) {
+				// 			modified.add(name + " (modified)");
+				// 		}
+				// 		break;
+				// 	}
+				// }
+
+
+
 			}
 			if (!inDirectory) {
 				if (!tree.removed.contains(name) && !(tree.staged.contains(name))) {
@@ -303,6 +331,7 @@ public class Gitlet implements Serializable {
 			try {
 				Files.delete(Paths.get(".gitlet/staged/" + name));
 			} catch (IOException e) {
+				System.out.println(name);
 				System.out.println("Error deleting from staging");
 				return;
 			}
@@ -482,20 +511,24 @@ public class Gitlet implements Serializable {
 	/** Checkouts using file name and commit id. */
 	public static void checkout(String commitID, String name) {
 		CommitTree tree = CommitTree.serialRead(); //TREE
-		Commit curr = tree.getHeadCommit();
-		String currSHA = tree.head;
-		while (curr.parentSHA != null) {
+
+		for (String branchSHA : tree.branches.values()) {
+			Commit curr = Commit.shaToCommit(branchSHA);
+			String currSHA = branchSHA;
+
+			while (curr.parentSHA != null) {
+				if (currSHA.equals(commitID)) {
+					getFile(name, curr);
+					return;
+				}
+				currSHA = curr.parentSHA;
+				curr = Commit.shaToCommit(curr.parentSHA);
+			}
+
 			if (currSHA.equals(commitID)) {
 				getFile(name, curr);
 				return;
 			}
-			currSHA = curr.parentSHA;
-			curr = Commit.shaToCommit(curr.parentSHA);
-		}
-
-		if (currSHA.equals(commitID)) {
-			getFile(name, curr);
-			return;
 		}
 		System.out.println("No commit with that id exists.");
 
@@ -545,6 +578,8 @@ public class Gitlet implements Serializable {
 				}
 			}
 		}
+
+		tree.staged = new TreeSet<String>();
 		CommitTree.serialWrite(tree);
 
 	}
@@ -690,8 +725,25 @@ public class Gitlet implements Serializable {
 		}
 
 		for (String name : givenBranchHead.fileMap.keySet()) {
-			if (!splitPoint.fileMap.containsKey(name)) {
+			if (!splitPoint.fileMap.containsKey(name)
+				&& !splitPoint.fileMap.get(name).equals(givenBranchHead.fileMap.get(name))
+				&& !currHead.fileMap.containsKey(name)) {
 				checkout(givenBranchSHA, name);
+				// System.out.println(givenBranchSHA);
+				add(name);
+			}
+		}
+
+		for (String name : currHead.fileMap.keySet()) {
+			if (splitPoint.fileMap.containsKey(name)
+				&& splitPoint.fileMap.get(name).equals(currHead.fileMap.get(name))
+				&& !givenBranchHead.fileMap.containsKey(name)) {
+
+				CommitTree.serialWrite(tree);
+				rm(name);
+				tree = CommitTree.serialRead();
+				//remove
+
 			}
 		}
 
@@ -703,21 +755,40 @@ public class Gitlet implements Serializable {
 			} else if (!currHead.fileMap.get(name).equals(splitPoint.fileMap.get(name))
 				&& !givenBranchHead.fileMap.get(name).equals(splitPoint.fileMap.get(name))) {
 					conflicting.add(name);
-
-					// File output = 
-
-					// File currFile = new File(Paths.get(".gitlet/blobs/" + currHead.fileMap.get(name)));
-					// File givenFile = new File(Paths.get(".gitlet/blobs/" + givenBranchHead.fileMap.get(name)));
-					// Reader currFileReader = Files.newBufferedReader(currFile.toPath());
-     //    			Reader givenFileReader = Files.newBufferedReader(givenFile.toPath());
-     //    			Writer destination = Files.newBufferedWriter(name.toPath()
-
 			} else if (!givenBranchHead.fileMap.get(name).equals(splitPoint.fileMap.get(name))) {
 				checkout(givenBranchSHA, name);
 			}
 		}
 
 		for (String name : conflicting) {
+			File output = new File(name);
+			System.out.println(output);
+
+			File currFile = new File(".gitlet/blobs/" + currHead.fileMap.get(name));
+			File givenFile = new File(".gitlet/blobs/" + givenBranchHead.fileMap.get(name));
+
+			try {
+				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+				byte[] head = "<<<<<<< HEAD \n".getBytes();
+				byte[] currToWrite = Utils.readContents(currFile);
+				byte[] divide = "======= \n".getBytes();
+				byte[] givenToWrite = Utils.readContents(givenFile);
+				byte[] end = ">>>>>>>".getBytes();
+
+				outputStream.write(head);
+				outputStream.write(currToWrite);
+				outputStream.write(divide);
+				outputStream.write(givenToWrite);
+				outputStream.write(end);
+
+				byte[] toWrite = outputStream.toByteArray();
+				Utils.writeContents(output, toWrite);
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
 
 		}
 
@@ -741,7 +812,12 @@ public class Gitlet implements Serializable {
 		// if () {
 			
 		// }
-		Gitlet.commit("Merged " + tree.currBranch + " with " + b + ".");
+
+		if (conflicting.size() > 0) {
+			System.out.println("Encountered a merge conflict.");
+		} else {
+			Gitlet.commit("Merged " + tree.currBranch + " with " + b + ".");
+		}
 	}
 
 	// public boolean givenFileModified(Commit currBranch, Commit givenBranch, Commit splitPoint) {
