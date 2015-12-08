@@ -570,7 +570,7 @@ public class Gitlet implements Serializable {
     }
 
     /** Uses the merge method based on input ARGS. */
-    public static void merge(String[]...args) {
+    public static void merge(String...args) {
         if (args.length == 1) {
             System.out.println("Please enter a branch.");
         } else if (args.length == 2) {
@@ -629,6 +629,20 @@ public class Gitlet implements Serializable {
                 }
             }
         }
+         for (String name : currHead.fileMap.keySet()) {
+            if (sp.fileMap.containsKey(name)
+                && !givenBrHead.fileMap.containsKey(name)) {
+                if (sp.fileMap.get(name).equals(currHead.fileMap.get(name))) {
+                    rm(name);
+                } else {
+                    conflicting.add(name);
+                }
+            } else if (!sp.fileMap.containsKey(name)
+                && givenBrHead.fileMap.containsKey(name)
+                && !givenBrHead.fileMap.get(name).equals(currHead.fileMap.get(name))) {
+                    conflicting.add(name);
+            }
+        }
         for (String name : conflicting) {
             resolveConflict(name, currHead, givenBrHead);
         }
@@ -647,23 +661,30 @@ public class Gitlet implements Serializable {
         File givenFile = new File(".gitlet/blobs/"
                 + givenBrHead.fileMap.get(name));
         try {
-            ByteArrayOutputStream outputStream
-                = new ByteArrayOutputStream();
-            byte[] head = "<<<<<<< HEAD \n".getBytes();
-            byte[] currToWrite = Utils.readContents(currFile);
-            byte[] divide = "======= \n".getBytes();
-            byte[] givenToWrite = Utils.readContents(givenFile);
-            byte[] end = ">>>>>>>".getBytes();
-            outputStream.write(head);
-            outputStream.write(currToWrite);
-            outputStream.write(divide);
-            outputStream.write(givenToWrite);
-            outputStream.write(end);
-            byte[] toWrite = outputStream.toByteArray();
-            Utils.writeContents(output, toWrite);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+                byte[] head = "<<<<<<< HEAD \n".getBytes();
+                outputStream.write(head);
+                if (currFile.exists()) {
+                    byte[] currToWrite = Utils.readContents(currFile);
+                    outputStream.write(currToWrite);
+                }
+                byte[] divide = "======= \n".getBytes();
+                outputStream.write(divide);
+                if (givenFile.exists()) {
+                    byte[] givenToWrite = Utils.readContents(givenFile);
+                    outputStream.write(givenToWrite);
+                }
+                byte[] end = ">>>>>>>".getBytes();
+                outputStream.write(end);
+
+
+                byte[] toWrite = outputStream.toByteArray();
+                Utils.writeContents(output, toWrite);
+                
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
     }
 }
 
