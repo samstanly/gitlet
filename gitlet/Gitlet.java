@@ -64,7 +64,7 @@ public class Gitlet implements Serializable {
         } catch (IOException e) {
             System.out.println(e);
         }
-        if (fileModified(file, name)) {
+        if (fileModified(file, name) || tree.removed.contains(name)) {
             if (tree.removed.contains(name)) {
                 tree.removed.remove(name);
             } else {
