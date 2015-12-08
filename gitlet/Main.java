@@ -34,6 +34,8 @@ public class Main {
         System.exit(1);
       }
       Gitlet.startUp();
+      System.out.println(Gitlet.tree);
+      System.out.println("000000");
       switch (args[0]) {
       	case "init":
           if (args.length == 1) {
@@ -134,6 +136,7 @@ public class Main {
         	System.out.println("No command with that name exists.");
           return;
       }
+      CommitTree.serialWrite(Gitlet.tree);
     }
 
     /** Report an error and exit program with EXIT as the

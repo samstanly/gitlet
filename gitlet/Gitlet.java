@@ -36,11 +36,13 @@ import java.io.ByteArrayOutputStream;
 public class Gitlet implements Serializable {
 
 	static CommitTree tree = null;
-
+	
 	static void startUp() {
-		File gitlet = new File(".gitlet/")
+		File gitlet = new File(".gitlet/");
 		if (gitlet.exists()) {
+			System.out.println("HEREEE");
 			tree = CommitTree.serialRead();
+
 		}
 	}
 
@@ -101,7 +103,7 @@ public class Gitlet implements Serializable {
 			System.out.println(e);
 		}
 		if (fileModified(file, name)) {
-			CommitTree tree = CommitTree.serialRead(); // TREE
+			// CommitTree tree = CommitTree.serialRead(); // TREE
 			tree.staged.add(name);
 			try {
 				Files.copy(Paths.get(name), Paths.get(".gitlet/staged/" + name), StandardCopyOption.REPLACE_EXISTING);
@@ -109,7 +111,7 @@ public class Gitlet implements Serializable {
 				System.out.println(e);
 			}
 
-			CommitTree.serialWrite(tree);
+			// CommitTree.serialWrite(tree);
 		}
 
 
@@ -124,7 +126,7 @@ public class Gitlet implements Serializable {
 	}
 
 	static boolean fileModified(File file, String name) {
-		CommitTree tree = CommitTree.serialRead(); //TREE
+		// CommitTree tree = CommitTree.serialRead(); //TREE
 
 		byte[] b = Utils.readContents(file);
 		String sha = Utils.sha1(b);
@@ -166,11 +168,12 @@ public class Gitlet implements Serializable {
 	 * modified/deleted files, and untracked files.
 	 */
 	public static void status() {
-		CommitTree tree = CommitTree.serialRead(); //TREE
+		// CommitTree tree = CommitTree.serialRead(); //TREE
 
 		System.out.println("=== Branches ===");
 		// System.out.println(("*" + tree.currBranch));
 
+		System.out.println(tree);
 
 		for (String branch : tree.branches.keySet()) {
 			if (!branch.equals(tree.currBranch)) {
@@ -252,7 +255,7 @@ public class Gitlet implements Serializable {
 		// File folder = new File(System.getProperty("user.dir"));
 		// File[] listOfFiles = folder.listFiles();
 
-		getUntracked(tree);
+		getUntracked();
 		for (String name : tree.untracked) {
 			if (!tree.staged.contains(name)) {
 				System.out.println(name);
@@ -260,7 +263,7 @@ public class Gitlet implements Serializable {
 			}
 		}
 
-		CommitTree.serialWrite(tree);
+		// CommitTree.serialWrite(tree);
 
 
 		// for (String u : untracked)
@@ -285,7 +288,7 @@ public class Gitlet implements Serializable {
 	// 	}
 	// }
 
-	private static void getUntracked(CommitTree tree) {
+	private static void getUntracked() {
 		Commit head = tree.getHeadCommit();
 		File folder = new File(System.getProperty("user.dir"));
 		File[] arrayOfFiles = folder.listFiles();
@@ -300,7 +303,7 @@ public class Gitlet implements Serializable {
 
 	/** Commits files to commit directory. */
 	static void commit(String msg) {
-		CommitTree tree = CommitTree.serialRead(); //TREE
+		// CommitTree tree = CommitTree.serialRead(); //TREE
 
 		String headSHA = tree.head;
 
@@ -364,7 +367,7 @@ public class Gitlet implements Serializable {
 		// tree.removed = new TreeSet<String>(); //Clear Removed Every COMMIT?
 
 		Commit.serialWrite(c, tree.head);
-  		CommitTree.serialWrite(tree);
+  		// CommitTree.serialWrite(tree);
 
 
 		// Commit c = new Commit(msg);
@@ -396,7 +399,7 @@ public class Gitlet implements Serializable {
 
 	/** Untrack file and will not be included in the next commit. */
   public static void rm(String name) {
-		CommitTree tree = CommitTree.serialRead(); //TREE
+		// CommitTree tree = CommitTree.serialRead(); //TREE
 		Commit head = tree.getHeadCommit();
 		if(head.fileMap.containsKey(name)) {
 			try {
@@ -420,12 +423,12 @@ public class Gitlet implements Serializable {
 		} else {
 			System.out.println("No reason to remove the file.");
 		}
-		CommitTree.serialWrite(tree);
+		// CommitTree.serialWrite(tree);
 	}
 
 	/** Prints all the commits with time/date and message. */
 	public static void log() {
-		CommitTree tree = CommitTree.serialRead(); //TREE
+		// CommitTree tree = CommitTree.serialRead(); //TREE
 		Commit curr = tree.getHeadCommit();
 		String currSHA = tree.head;
 		while (curr.parentSHA != null) {
@@ -438,7 +441,7 @@ public class Gitlet implements Serializable {
 
 	/** Displays information about all commits. Order doesn't matter. */
 	public static void globalLog() {
-		CommitTree tree = CommitTree.serialRead(); //TREE
+		// CommitTree tree = CommitTree.serialRead(); //TREE
 		HashSet<String> printed = new HashSet<String>();
 
 		for (String branchSHA : tree.branches.values()) {
@@ -466,7 +469,7 @@ public class Gitlet implements Serializable {
 	 * commit message. 
 	 */
 	public static void find(String msg) {
-		CommitTree tree = CommitTree.serialRead(); //TREE
+		// CommitTree tree = CommitTree.serialRead(); //TREE
 		HashSet<String> checked = new HashSet<String>();
 		HashSet<String> found = new HashSet<String>();
 
@@ -502,15 +505,15 @@ public class Gitlet implements Serializable {
 
 	/** Checkouts using file name. */
 	public static void checkout(String name) {
-		CommitTree tree = CommitTree.serialRead();
+		// CommitTree tree = CommitTree.serialRead();
 		Commit head = tree.getHeadCommit();
 		getFile(name, head);
-		CommitTree.serialWrite(tree);
+		// CommitTree.serialWrite(tree);
 	}
 
 	/** Checkouts using file name and commit id. */
 	public static void checkout(String commitID, String name) {
-		CommitTree tree = CommitTree.serialRead(); //TREE
+		// CommitTree tree = CommitTree.serialRead(); //TREE
 
 		for (String branchSHA : tree.branches.values()) {
 			Commit curr = Commit.shaToCommit(branchSHA);
@@ -536,10 +539,10 @@ public class Gitlet implements Serializable {
 
 /** Checkouts branch. */
 	public static void checkoutBranch(String branch) {
-		CommitTree tree = CommitTree.serialRead();
+		// CommitTree tree = CommitTree.serialRead();
 		String sha = tree.branches.get(branch);
 		Commit newHead = Commit.shaToCommit(sha);
-		getUntracked(tree);
+		getUntracked();
 		if (!tree.branches.containsKey(branch)) {
 			System.out.println("No such branch exists.");
 			return;
@@ -580,7 +583,7 @@ public class Gitlet implements Serializable {
 		}
 
 		tree.staged = new TreeSet<String>();
-		CommitTree.serialWrite(tree);
+		// CommitTree.serialWrite(tree);
 
 	}
 
@@ -601,10 +604,10 @@ public class Gitlet implements Serializable {
 
 	/** Creates a new branch with the given name. */
 	public static void branch(String name) {
-		CommitTree tree = CommitTree.serialRead();
+		// CommitTree tree = CommitTree.serialRead();
 		if (!tree.branches.containsKey(name)) {
 			tree.branches.put(name, tree.head);
-			CommitTree.serialWrite(tree);
+			// CommitTree.serialWrite(tree);
 		} else {
 			System.out.println("A branch with that name already exists.");
 		}
@@ -612,14 +615,14 @@ public class Gitlet implements Serializable {
 
 	/** Deletes branch with given name. */
 	public static void removeBranch(String name) {
-		CommitTree tree = CommitTree.serialRead();
+		// CommitTree tree = CommitTree.serialRead();
 		if (!tree.branches.containsKey(name)) {
 			System.out.println("A branch with that name does not exist.");
 		} else if (tree.currBranch.equals(name)) {
 			System.out.println("Cannot remove the current branch.");
 		} else {
 			tree.branches.remove(name, tree.head);
-			CommitTree.serialWrite(tree);
+			// CommitTree.serialWrite(tree);
 		}
 	}
 
@@ -628,7 +631,7 @@ public class Gitlet implements Serializable {
 	 * current branch's head to that commit node.
 	 */
 	public static void reset(String id) {
-		CommitTree tree = CommitTree.serialRead();
+		// CommitTree tree = CommitTree.serialRead();
 		Commit curr = tree.getHeadCommit();
 		String currSHA = tree.head;
 		while (currSHA != null) {
@@ -648,11 +651,11 @@ public class Gitlet implements Serializable {
 		}
 
 		tree.head = currSHA;
-		CommitTree.serialWrite(tree);
+		// CommitTree.serialWrite(tree);
 	}
 
 	public static Commit findSplitPoint(String b1, String b2) {
-		CommitTree tree = CommitTree.serialRead();
+		// CommitTree tree = CommitTree.serialRead();
 		HashSet<String> checked = new HashSet<String>();
 		String b1CurrSHA = tree.branches.get(b1);
 		Commit b1Curr;
@@ -685,8 +688,8 @@ public class Gitlet implements Serializable {
 
 	/** Merge files from given branch into current branch. */
 	public static void merge(String b) {
-		CommitTree tree = CommitTree.serialRead();
-		getUntracked(tree);
+		// CommitTree tree = CommitTree.serialRead();
+		getUntracked();
 		Commit splitPoint = findSplitPoint(b, tree.currBranch);
 		String splitPointSHA = Commit.commitToSha(splitPoint);
 
@@ -739,9 +742,9 @@ public class Gitlet implements Serializable {
 				&& splitPoint.fileMap.get(name).equals(currHead.fileMap.get(name))
 				&& !givenBranchHead.fileMap.containsKey(name)) {
 
-				CommitTree.serialWrite(tree);
+				// CommitTree.serialWrite(tree);
 				rm(name);
-				tree = CommitTree.serialRead();
+				// tree = CommitTree.serialRead();
 				//remove
 
 			}
