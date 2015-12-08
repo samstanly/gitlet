@@ -338,7 +338,8 @@ public class Gitlet implements Serializable {
             String currSHA = branchSHA;
 
             while (curr.parentSHA != null) {
-                if (currSHA.equals(commitID)) {
+                if (currSHA.equals(commitID) 
+                        || currSHA.substring(0, 5).equals(commitID)) {
                     getFile(name, curr);
                     return;
                 }
