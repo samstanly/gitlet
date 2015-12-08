@@ -23,7 +23,7 @@ public class Main {
             }
             break;
         case "commit":
-            if (args.length == 1) {
+            if (args.length == 1 || args[1].trim().equals("")) {
                 System.out.println("Please enter a commit message.");
             } else if (args.length == 2) {
                 Gitlet.commit(args[1]);

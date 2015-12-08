@@ -32,6 +32,7 @@ public class Gitlet implements Serializable {
         if (!e) {
             System.out.println("gitlet version-control system already"
                 + "exists in the current directory");
+            System.exit(0);
         } else {
             Commit initial = new Commit("initial commit", null);
             tree = new CommitTree();
@@ -564,7 +565,18 @@ public class Gitlet implements Serializable {
             }
         }
         for (String name : conflicting) {
-            File output = new File(name);
+            resolveConflict(name, currHead, givenBranchHead);
+        }
+        if (conflicting.size() > 0) {
+            System.out.println("Encountered a merge conflict.");
+        } else {
+            Gitlet.commit("Merged " + tree.currBranch + " with " + b + ".");
+        }
+    }
+
+    /** Resolves conflict in filename NAME in commit CURRHEAD in GIVENBRANCHHEAD */
+    public static void resolveConflict(String name, Commit currHead, Commit givenBranchHead) {
+        File output = new File(name);
             System.out.println(output);
             File currFile = new File(".gitlet/blobs/" + currHead.fileMap.get(name));
             File givenFile = new File(".gitlet/blobs/" + givenBranchHead.fileMap.get(name));
@@ -585,12 +597,6 @@ public class Gitlet implements Serializable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        if (conflicting.size() > 0) {
-            System.out.println("Encountered a merge conflict.");
-        } else {
-            Gitlet.commit("Merged " + tree.currBranch + " with " + b + ".");
-        }
     }
 }
 
