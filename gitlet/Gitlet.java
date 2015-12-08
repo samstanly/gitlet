@@ -243,7 +243,7 @@ public class Gitlet implements Serializable {
     }
 
     /** Uses the remove method based on input ARGS. */
-    public static void rm(String[] args) {
+    public static void rm(String... args) {
         if (args.length == 1) {
             System.out.println("Please enter a file to remove.");
         } else if (args.length == 2) {
@@ -480,7 +480,7 @@ public class Gitlet implements Serializable {
     }
 
     /** Uses the rm-branch method based on input ARGS. */
-    public static void removeBranch(String[] args) {
+    public static void removeBranch(String...args) {
         if (args.length == 1) {
             System.out.println("Enter branch to remove.");
         } else if (args.length == 2) {
@@ -500,7 +500,7 @@ public class Gitlet implements Serializable {
     }
 
     /** Uses the reset method based on input ARGS. */
-    public static void reset(String[]...args) {
+    public static void reset(String...args) {
         if (args.length == 1) {
             System.out.println("Please enter commit ID.");
         } else if (args.length == 2) {
