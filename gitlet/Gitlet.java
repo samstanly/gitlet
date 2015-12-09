@@ -601,7 +601,8 @@ public class Gitlet implements Serializable {
             System.out.println("You have uncommitted changes.");
             return;
         } else {
-            for (String name : sp.fileMap.keySet()) {
+            getUntracked();
+            for (String name : givenBrHead.fileMap.keySet()) {
                 if (tree.untracked.contains(name)) {
                     System.out.println("There is an untracked file in the way;"
                             + " delete it or add it first.");
