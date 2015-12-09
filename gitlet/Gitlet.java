@@ -382,11 +382,11 @@ public class Gitlet implements Serializable {
         for (String branchSHA : tree.branches.values()) {
             Commit curr = Commit.shaToCommit(branchSHA);
             String currSHA = branchSHA;
-            if (currSHA.length() < commitID.length()) {
-                System.out.println("No commit with that id exists.");
-                return;
-            }
             while (curr.parentSHA != null) {
+                // if (currSHA.length() < commitID.length()) {
+                //     System.out.println("No commit with that id exists.");
+                //     return;
+                // }
                 if (currSHA.equals(commitID)
                         || currSHA.substring(0, commitID.length()).equals(commitID)) {
                     getFile(name, curr);
@@ -395,6 +395,10 @@ public class Gitlet implements Serializable {
                 currSHA = curr.parentSHA;
                 curr = Commit.shaToCommit(curr.parentSHA);
             }
+            if (currSHA.length() < commitID.length()) {
+                    System.out.println("No commit with that id exists.");
+                    return;
+                }
             if (currSHA.equals(commitID)
                     || currSHA.substring(0, commitID.length()).equals(commitID)) {
                 getFile(name, curr);
@@ -516,10 +520,10 @@ public class Gitlet implements Serializable {
         Commit curr = tree.getHeadCommit();
         String currSHA = tree.head;
         while (currSHA != null) {
-            if (currSHA.length() < id.length()) {
-                System.out.println("No commit with that id exists.");
-                return;
-            }
+            // if (currSHA.length() < id.length()) {
+            //     System.out.println("No commit with that id exists.");
+            //     return;
+            // }
             if (currSHA.equals(id)
                     || currSHA.substring(0, id.length()).equals(id)) {
                 break;
