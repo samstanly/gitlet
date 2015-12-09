@@ -580,6 +580,13 @@ public class Gitlet implements Serializable {
     /** Merge files from given branch B into current branch. */
     public static void merge(String b) {
         getUntracked();
+        if (b.equals(tree.currBranch)) {
+            System.out.println("Cannot merge a branch with itself.");
+            return;
+        } else if (!tree.branches.containsKey(b)) {
+            System.out.println("A branch with that name does not exist.");
+            return;
+        }
         Commit sp = findSplitPoint(b, tree.currBranch);
         String spSHA = Commit.commitToSha(sp);
         String givenBrSHA = tree.branches.get(b);
@@ -587,13 +594,7 @@ public class Gitlet implements Serializable {
         Commit currHead = tree.getHeadCommit();
         String currHeadSHA = tree.head;
         String currBranchName = tree.currBranch;
-        if (b.equals(tree.currBranch)) {
-            System.out.println("Cannot merge a branch with itself.");
-            return;
-        } else if (!tree.branches.containsKey(b)) {
-            System.out.println("A branch with that name does not exist.");
-            return;
-        } else if (tree.branches.get(b).equals(spSHA)) {
+        if (tree.branches.get(b).equals(spSHA)) {
             System.out.println("Given branch is an ancestor of the"
                 + "current branch.");
             return;
