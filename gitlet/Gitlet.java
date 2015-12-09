@@ -597,6 +597,9 @@ public class Gitlet implements Serializable {
             System.out.println("Given branch is an ancestor of the"
                 + "current branch.");
             return;
+        } else if (tree.removed.size() != 0 || tree.staged.size() != 0) {
+            System.out.println("You have uncommitted changes.");
+            return;
         } else {
             for (String name : sp.fileMap.keySet()) {
                 if (tree.untracked.contains(name)) {
