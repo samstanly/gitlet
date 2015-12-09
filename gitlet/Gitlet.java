@@ -146,11 +146,9 @@ public class Gitlet implements Serializable {
                     }
                 }
             }
-            if (!inDirectory) {
-                if (!tree.removed.contains(name)
-                    && !(tree.staged.contains(name))) {
-                    modified.add(name + " (deleted)");
-                }
+            if (!inDirectory && !tree.removed.contains(name)
+                && !(tree.staged.contains(name))) {
+                modified.add(name + " (deleted)");
             }
         }
         for (String name : modified) {
@@ -617,6 +615,28 @@ public class Gitlet implements Serializable {
             tree.currBranch = currBranchName;
             System.out.println("Current branch fast-forwarded.");
         }
+        HashSet<String> conflicting = findConflicting(
+                currHead, givenBrHead, sp, givenBrSHA);
+        for (String name : conflicting) {
+            resolveConflict(name, currHead, givenBrHead);
+        }
+        if (conflicting.size() > 0) {
+            System.out.println("Encountered a merge conflict.");
+        } else {
+            Gitlet.commit("Merged " + tree.currBranch + " with " + b + ".");
+        }
+    }
+
+    /**
+     * Returns a HashSet with all the conflicting file names.
+     * @param  currHead    current head
+     * @param  givenBrHead given branch head
+     * @param  sp          split head
+     * @param  givenBrSHA  given branch SHA
+     * @return             hashset
+     */
+    public static HashSet<String> findConflicting(Commit currHead,
+        Commit givenBrHead, Commit sp, String givenBrSHA) {
         HashSet<String> conflicting = new HashSet<String>();
         for (String name : givenBrHead.fileMap.keySet()) {
             if (!sp.fileMap.containsKey(name)) {
@@ -629,7 +649,8 @@ public class Gitlet implements Serializable {
             } else if (sp.fileMap.containsKey(name)) {
                 if (!sp.fileMap.get(name).equals(givenBrHead.fileMap.get(name))
                     && (!currHead.fileMap.containsKey(name)
-                    || !currHead.fileMap.get(name).equals(sp.fileMap.get(name)))) {
+                    || !currHead.fileMap.get(name).equals(
+                        sp.fileMap.get(name)))) {
                     conflicting.add(name);
                 }
             }
@@ -637,16 +658,18 @@ public class Gitlet implements Serializable {
         for (String name : currHead.fileMap.keySet()) {
             if (sp.fileMap.containsKey(name)) {
                 if (!givenBrHead.fileMap.containsKey(name)
-                    && sp.fileMap.get(name).equals(currHead.fileMap.get(name))) {
+                    && sp.fileMap.get(name).equals(
+                        currHead.fileMap.get(name))) {
                     rm(name);
                 } else if (givenBrHead.fileMap.containsKey(name)
-                    && !sp.fileMap.get(name).equals(givenBrHead.fileMap.get(name))) {
+                    && !sp.fileMap.get(name).equals(
+                        givenBrHead.fileMap.get(name))) {
                     conflicting.add(name);
                 } else if (!givenBrHead.fileMap.containsKey(name)
-                    && !sp.fileMap.get(name).equals(currHead.fileMap.get(name))) {
+                    && !sp.fileMap.get(name).equals(
+                        currHead.fileMap.get(name))) {
                     conflicting.add(name);
                 }
- 
             } else if (!sp.fileMap.containsKey(name)
                 && givenBrHead.fileMap.containsKey(name)
                 && !givenBrHead.fileMap.get(name).equals(
@@ -654,14 +677,7 @@ public class Gitlet implements Serializable {
                 conflicting.add(name);
             }
         }
-        for (String name : conflicting) {
-            resolveConflict(name, currHead, givenBrHead);
-        }
-        if (conflicting.size() > 0) {
-            System.out.println("Encountered a merge conflict.");
-        } else {
-            Gitlet.commit("Merged " + tree.currBranch + " with " + b + ".");
-        }
+        return conflicting;
     }
 
     /** Resolves conflict in filename NAME in commit CURRHEAD in GIVENBRHEAD. */
