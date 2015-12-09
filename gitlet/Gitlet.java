@@ -385,7 +385,7 @@ public class Gitlet implements Serializable {
 
             while (curr.parentSHA != null) {
                 if (currSHA.equals(commitID)
-                        || currSHA.substring(0, 6).equals(commitID)) {
+                        || currSHA.substring(0, commitID.length()).equals(commitID)) {
                     getFile(name, curr);
                     return;
                 }
@@ -393,7 +393,7 @@ public class Gitlet implements Serializable {
                 curr = Commit.shaToCommit(curr.parentSHA);
             }
             if (currSHA.equals(commitID)
-                    || currSHA.substring(0, 6).equals(commitID)) {
+                    || currSHA.substring(0, commitID.length()).equals(commitID)) {
                 getFile(name, curr);
                 return;
             }
@@ -514,7 +514,7 @@ public class Gitlet implements Serializable {
         String currSHA = tree.head;
         while (currSHA != null) {
             if (currSHA.equals(id)
-                    || currSHA.substring(0, 6).equals(id)) {
+                    || currSHA.substring(0, id.length()).equals(id)) {
                 break;
             }
             currSHA = curr.parentSHA;
