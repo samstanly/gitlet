@@ -637,6 +637,9 @@ public class Gitlet implements Serializable {
                 } else if (givenBrHead.fileMap.containsKey(name)
                     && !sp.fileMap.get(name).equals(givenBrHead.fileMap.get(name))) {
                     conflicting.add(name);
+                } else if (!givenBrHead.fileMap.containsKey(name)
+                    && !sp.fileMap.get(name).equals(currHead.fileMap.get(name))) {
+                    conflicting.add(name);
                 }
  
             } else if (!sp.fileMap.containsKey(name)
