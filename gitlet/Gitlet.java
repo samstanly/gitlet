@@ -382,29 +382,24 @@ public class Gitlet implements Serializable {
         for (String branchSHA : tree.branches.values()) {
             Commit curr = Commit.shaToCommit(branchSHA);
             String currSHA = branchSHA;
-            if (currSHA.length() >= commitID.length()) {
+            if (currSHA.length() < commitID.length()) {
                 System.out.println("No commit with that id exists.");
                 return;
             }
             while (curr.parentSHA != null) {
-                if (currSHA.equals(commitID)) {
-                    getFile(name, curr);
-                    return;
-                } else if (currSHA.substring(0, commitID.length()).equals(commitID)) {
+                if (currSHA.equals(commitID)
+                        || currSHA.substring(0, commitID.length()).equals(commitID)) {
                     getFile(name, curr);
                     return;
                 }
                 currSHA = curr.parentSHA;
                 curr = Commit.shaToCommit(curr.parentSHA);
             }
-            if (currSHA.equals(commitID)) {
-                getFile(name, curr);
-                return;
-            } else if (currSHA.substring(0, commitID.length()).equals(commitID)) {
+            if (currSHA.equals(commitID)
+                    || currSHA.substring(0, commitID.length()).equals(commitID)) {
                 getFile(name, curr);
                 return;
             }
-
         }
         System.out.println("No commit with that id exists.");
     }
@@ -521,13 +516,12 @@ public class Gitlet implements Serializable {
         Commit curr = tree.getHeadCommit();
         String currSHA = tree.head;
         while (currSHA != null) {
-            if (currSHA.length() >= id.length()) {
+            if (currSHA.length() < id.length()) {
                 System.out.println("No commit with that id exists.");
                 return;
             }
-            if (currSHA.equals(id)) {
-                break;
-            } else if (currSHA.substring(0, id.length()).equals(id)) {
+            if (currSHA.equals(id)
+                    || currSHA.substring(0, id.length()).equals(id)) {
                 break;
             }
             currSHA = curr.parentSHA;
