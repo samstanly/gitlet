@@ -387,19 +387,24 @@ public class Gitlet implements Serializable {
                 return;
             }
             while (curr.parentSHA != null) {
-                if (currSHA.equals(commitID)
-                        || currSHA.substring(0, commitID.length()).equals(commitID)) {
+                if (currSHA.equals(commitID)) {
+                    getFile(name, curr);
+                    return;
+                } else if (currSHA.substring(0, commitID.length()).equals(commitID)) {
                     getFile(name, curr);
                     return;
                 }
                 currSHA = curr.parentSHA;
                 curr = Commit.shaToCommit(curr.parentSHA);
             }
-            if (currSHA.equals(commitID)
-                    || currSHA.substring(0, commitID.length()).equals(commitID)) {
+            if (currSHA.equals(commitID)) {
+                getFile(name, curr);
+                return;
+            } else if (currSHA.substring(0, commitID.length()).equals(commitID)) {
                 getFile(name, curr);
                 return;
             }
+
         }
         System.out.println("No commit with that id exists.");
     }
@@ -520,8 +525,9 @@ public class Gitlet implements Serializable {
                 System.out.println("No commit with that id exists.");
                 return;
             }
-            if (currSHA.equals(id)
-                    || currSHA.substring(0, id.length()).equals(id)) {
+            if (currSHA.equals(id)) {
+                break;
+            } else if (currSHA.substring(0, id.length()).equals(id)) {
                 break;
             }
             currSHA = curr.parentSHA;
