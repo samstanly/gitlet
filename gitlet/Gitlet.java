@@ -382,7 +382,10 @@ public class Gitlet implements Serializable {
         for (String branchSHA : tree.branches.values()) {
             Commit curr = Commit.shaToCommit(branchSHA);
             String currSHA = branchSHA;
-
+            if (currSHA.length >= commitID.length) {
+                System.out.println("No commit with that id exists.");
+                return;
+            }
             while (curr.parentSHA != null) {
                 if (currSHA.equals(commitID)
                         || currSHA.substring(0, commitID.length()).equals(commitID)) {
