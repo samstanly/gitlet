@@ -701,7 +701,7 @@ public class Gitlet implements Serializable {
                 byte[] givenToWrite = Utils.readContents(givenFile);
                 outputStream.write(givenToWrite);
             }
-            byte[] end = ">>>>>>>".getBytes();
+            byte[] end = ">>>>>>>\n".getBytes();
             outputStream.write(end);
             byte[] toWrite = outputStream.toByteArray();
             Utils.writeContents(output, toWrite);
