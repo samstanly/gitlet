@@ -513,7 +513,8 @@ public class Gitlet implements Serializable {
         Commit curr = tree.getHeadCommit();
         String currSHA = tree.head;
         while (currSHA != null) {
-            if (currSHA.equals(id)) {
+            if (currSHA.equals(id)
+                    || currSHA.substring(0, 6).equals(id)) {
                 break;
             }
             currSHA = curr.parentSHA;
