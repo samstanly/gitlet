@@ -689,13 +689,13 @@ public class Gitlet implements Serializable {
                 + givenBrHead.fileMap.get(name));
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            byte[] head = "<<<<<<< HEAD \n".getBytes();
+            byte[] head = "<<<<<<< HEAD\n".getBytes();
             outputStream.write(head);
             if (currFile.exists()) {
                 byte[] currToWrite = Utils.readContents(currFile);
                 outputStream.write(currToWrite);
             }
-            byte[] divide = "======= \n".getBytes();
+            byte[] divide = "=======\n".getBytes();
             outputStream.write(divide);
             if (givenFile.exists()) {
                 byte[] givenToWrite = Utils.readContents(givenFile);
