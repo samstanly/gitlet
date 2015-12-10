@@ -94,6 +94,7 @@ def Group(n):
 def contents(filename):
     try:
         with open(filename) as inp:
+
             return inp.read()
     except FileNotFoundError:
         return None

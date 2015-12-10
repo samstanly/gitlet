@@ -166,6 +166,7 @@ public class Gitlet implements Serializable {
 
     /** Gets all the untracked files. */
     private static void getUntracked() {
+        tree.untracked = new TreeSet<String>();
         Commit head = tree.getHeadCommit();
         File folder = new File(System.getProperty("user.dir"));
         File[] arrayOfFiles = folder.listFiles();
@@ -510,22 +511,42 @@ public class Gitlet implements Serializable {
      * current branch's head to that commit node.
      */
     public static void reset(String id) {
-        Commit curr = tree.getHeadCommit();
-        String currSHA = tree.head;
-        while (currSHA != null) {
-            if (currSHA.equals(id)) {
+        Commit curr = null;
+        String currSHA = null;
+        Commit head = tree.getHeadCommit();
+        for (String branchSHA : tree.branches.values()) {
+            curr = Commit.shaToCommit(branchSHA);
+            currSHA = branchSHA;
+
+            while (currSHA != null) {
+                if (currSHA.equals(id)) {
+                    break;
+                }
+                currSHA = curr.parentSHA;
+                curr = Commit.shaToCommit(curr.parentSHA);
+            }
+            if (currSHA != null) {
                 break;
             }
-            currSHA = curr.parentSHA;
-            if (currSHA == null) {
-                System.out.println("No commit with that id exists.");
-                return;
-            }
-            curr = Commit.shaToCommit(currSHA);
+        }
+        if (currSHA == null) {
+            System.out.println("No commit with that id exists.");
+            return;
         }
 
+        tree.staged = new TreeSet<String>();
+        tree.removed = new TreeSet<String>();
         for (String name : curr.fileMap.keySet()) {
-            Gitlet.getFile(name, curr);
+            getFile(name, curr);    
+        }
+        for (String name : head.fileMap.keySet()) {
+            if (!curr.fileMap.containsKey(name)) {
+                try {
+                    Files.delete(Paths.get(name));
+                } catch (IOException e) {
+                    System.out.println("Error deleting files");
+                }
+            }
         }
 
         tree.head = currSHA;
