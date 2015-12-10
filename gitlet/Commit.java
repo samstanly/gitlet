@@ -73,7 +73,7 @@ public class Commit implements Serializable {
     /** Return a byte array from an object OBJECT. */
     private static byte[] convertToBytes(Object object) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             ObjectOutput out = new ObjectOutputStream(bos)) {
+            ObjectOutput out = new ObjectOutputStream(bos)) {
             out.writeObject(object);
             return bos.toByteArray();
         } catch (IOException e) {
