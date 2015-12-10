@@ -161,7 +161,6 @@ public class Gitlet implements Serializable {
                 System.out.println(name);
             }
         }
-        System.out.println();
     }
 
     /** Gets all the untracked files. */

@@ -1,0 +1,25 @@
+# "Any files that have been modified in the current branch but not in the given branch since the split point should stay as they are."
+> init
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "added wug"
+<<<
+> branch b2
+<<<
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
+> commit "added notwug"
+<<<
+> checkout b2
+<<<
++ wug.txt modified.txt
+> add wug.txt
+<<<
+> commit "added wug as modified file"
+<<<
+> merge master
+<<<
+= wug.txt modified.txt

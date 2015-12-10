@@ -1,0 +1,27 @@
+# "the file was absent at the split point and have different contents in the given and current branches."
+> init
+<<<
+> branch b2
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "added wug"
+<<<
+> checkout b2
+<<<
++ wug.txt notwug.txt
+> add wug.txt
+<<<
+> commit "add wug with content of notwug"
+<<<
+> merge master
+Encountered a merge conflict.
+<<<
+= wug.txt wugNotWug.txt
+> checkout master
+<<<
+> merge b2
+Encountered a merge conflict.
+<<<
+= wug.txt notWugWug.txt
