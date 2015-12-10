@@ -46,6 +46,7 @@ public class Gitlet implements Serializable {
 
             tree.head = Commit.commitToSha(initial);
             tree.branches.put("master", tree.head);
+            tree.commitHistory.put("master", tree.head);
             tree.currBranch = "master";
             Commit.serialWrite(initial, tree.head);
         }
@@ -222,6 +223,7 @@ public class Gitlet implements Serializable {
         }
         tree.head = Commit.commitToSha(c);
         tree.branches.put(tree.currBranch, tree.head);
+        tree.commitHistory.put(tree.currBranch, tree.head);
         tree.staged = new TreeSet<String>();
         tree.notToCommit = new HashSet<String>();
         tree.removed = new TreeSet<String>();
@@ -294,7 +296,7 @@ public class Gitlet implements Serializable {
     public static void globalLog() {
         HashSet<String> printed = new HashSet<String>();
 
-        for (String branchSHA : tree.branches.values()) {
+        for (String branchSHA : tree.commitHistory.values()) {
             Commit curr = Commit.shaToCommit(branchSHA);
             String currSHA = branchSHA;
 
@@ -331,7 +333,7 @@ public class Gitlet implements Serializable {
         HashSet<String> checked = new HashSet<String>();
         HashSet<String> found = new HashSet<String>();
 
-        for (String branchSHA : tree.branches.values()) {
+        for (String branchSHA : tree.commitHistory.values()) {
             Commit curr = Commit.shaToCommit(branchSHA);
             String currSHA = branchSHA;
 
@@ -379,7 +381,7 @@ public class Gitlet implements Serializable {
 
     /** Checkouts using file name NAME and commit id COMMITID. */
     public static void checkout(String commitID, String name) {
-        for (String branchSHA : tree.branches.values()) {
+        for (String branchSHA : tree.commitHistory.values()) {
             Commit curr = Commit.shaToCommit(branchSHA);
             String currSHA = branchSHA;
             while (curr.parentSHA != null) {
@@ -480,6 +482,7 @@ public class Gitlet implements Serializable {
     public static void branch(String name) {
         if (!tree.branches.containsKey(name)) {
             tree.branches.put(name, tree.head);
+            tree.commitHistory.put(name, tree.head);
         } else {
             System.out.println("A branch with that name already exists.");
         }
@@ -522,9 +525,10 @@ public class Gitlet implements Serializable {
         Commit curr = null;
         String currSHA = null;
         Commit head = tree.getHeadCommit();
-        for (String branchSHA : tree.branches.values()) {
-            curr = Commit.shaToCommit(branchSHA);
-            currSHA = branchSHA;
+        String foundBranch = null;
+        for (String branchName : tree.commitHistory.keySet()) {
+            currSHA = tree.commitHistory.get(branchName);
+            curr = Commit.shaToCommit(currSHA);
 
             while (true) {
                 if (currSHA.length() < id.length()) {
@@ -542,6 +546,7 @@ public class Gitlet implements Serializable {
                 curr = Commit.shaToCommit(curr.parentSHA);
             }
             if (currSHA != null) {
+                foundBranch = branchName;
                 break;
             }
         }
@@ -550,8 +555,6 @@ public class Gitlet implements Serializable {
             return;
         }
 
-        tree.staged = new TreeSet<String>();
-        tree.removed = new TreeSet<String>();
         getUntracked();
         for (String name : curr.fileMap.keySet()) {
             if (tree.untracked.contains(name)) {
@@ -561,6 +564,8 @@ public class Gitlet implements Serializable {
                 return;
             }
         }
+        tree.staged = new TreeSet<String>();
+        tree.removed = new TreeSet<String>();
         for (String name : curr.fileMap.keySet()) {
             getFile(name, curr);
         }
@@ -575,6 +580,7 @@ public class Gitlet implements Serializable {
             }
         }
 
+        tree.branches.put(foundBranch, currSHA);
         tree.head = currSHA;
     }
 
