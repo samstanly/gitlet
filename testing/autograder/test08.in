@@ -1,0 +1,24 @@
+# "Any files that were not present at the split point and are present only in the current branch should remain as they are."
+> init
+<<<
+> branch b2
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "added wug"
+<<<
+> checkout b2
+<<<
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
+> commit "added notwug"
+<<<
+E notwug.txt
+* wug.txt
+> merge master
+<<<
+E notwug.txt
+= notwug.txt notwug.txt
+E wug.txt

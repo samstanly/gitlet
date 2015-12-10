@@ -161,11 +161,11 @@ public class Gitlet implements Serializable {
                 System.out.println(name);
             }
         }
-        System.out.println();
     }
 
     /** Gets all the untracked files. */
     private static void getUntracked() {
+        tree.untracked = new TreeSet<String>();
         Commit head = tree.getHeadCommit();
         File folder = new File(System.getProperty("user.dir"));
         File[] arrayOfFiles = folder.listFiles();
@@ -383,12 +383,13 @@ public class Gitlet implements Serializable {
             Commit curr = Commit.shaToCommit(branchSHA);
             String currSHA = branchSHA;
             while (curr.parentSHA != null) {
-                // if (currSHA.length() < commitID.length()) {
-                //     System.out.println("No commit with that id exists.");
-                //     return;
-                // }
+                if (currSHA.length() < commitID.length()) {
+                    System.out.println("No commit with that id exists.");
+                    return;
+                }
                 if (currSHA.equals(commitID)
-                        || currSHA.substring(0, commitID.length()).equals(commitID)) {
+                        || currSHA.substring(0, commitID.length()).equals(
+                            commitID)) {
                     getFile(name, curr);
                     return;
                 }
@@ -396,11 +397,12 @@ public class Gitlet implements Serializable {
                 curr = Commit.shaToCommit(curr.parentSHA);
             }
             if (currSHA.length() < commitID.length()) {
-                    System.out.println("No commit with that id exists.");
-                    return;
-                }
+                System.out.println("No commit with that id exists.");
+                return;
+            }
             if (currSHA.equals(commitID)
-                    || currSHA.substring(0, commitID.length()).equals(commitID)) {
+                    || currSHA.substring(0, commitID.length()).equals(
+                        commitID)) {
                 getFile(name, curr);
                 return;
             }
@@ -517,27 +519,60 @@ public class Gitlet implements Serializable {
      * current branch's head to that commit node.
      */
     public static void reset(String id) {
-        Commit curr = tree.getHeadCommit();
-        String currSHA = tree.head;
-        while (currSHA != null) {
-            // if (currSHA.length() < id.length()) {
-            //     System.out.println("No commit with that id exists.");
-            //     return;
-            // }
-            if (currSHA.equals(id)
+        Commit curr = null;
+        String currSHA = null;
+        Commit head = tree.getHeadCommit();
+        for (String branchSHA : tree.branches.values()) {
+            curr = Commit.shaToCommit(branchSHA);
+            currSHA = branchSHA;
+
+            while (true) {
+                if (currSHA.length() < id.length()) {
+                    System.out.println("No commit with that id exists.");
+                    return;
+                }
+                if (currSHA.equals(id)
                     || currSHA.substring(0, id.length()).equals(id)) {
+                    break;
+                }
+                currSHA = curr.parentSHA;
+                if (currSHA == null) {
+                    break;
+                }
+                curr = Commit.shaToCommit(curr.parentSHA);
+            }
+            if (currSHA != null) {
                 break;
             }
-            currSHA = curr.parentSHA;
-            if (currSHA == null) {
-                System.out.println("No commit with that id exists.");
-                return;
-            }
-            curr = Commit.shaToCommit(currSHA);
+        }
+        if (currSHA == null) {
+            System.out.println("No commit with that id exists.");
+            return;
         }
 
+        tree.staged = new TreeSet<String>();
+        tree.removed = new TreeSet<String>();
+        getUntracked();
         for (String name : curr.fileMap.keySet()) {
-            Gitlet.getFile(name, curr);
+            if (tree.untracked.contains(name)) {
+                System.out.println(
+                    "There is an untracked file in the way;"
+                    + " delete it or add it first.");
+                return;
+            }
+        }
+        for (String name : curr.fileMap.keySet()) {
+            getFile(name, curr);
+        }
+
+        for (String name : head.fileMap.keySet()) {
+            if (!curr.fileMap.containsKey(name)) {
+                try {
+                    Files.delete(Paths.get(name));
+                } catch (IOException e) {
+                    System.out.println("Error deleting files");
+                }
+            }
         }
 
         tree.head = currSHA;
@@ -701,19 +736,19 @@ public class Gitlet implements Serializable {
                 + givenBrHead.fileMap.get(name));
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            byte[] head = "<<<<<<< HEAD \n".getBytes();
+            byte[] head = "<<<<<<< HEAD\n".getBytes();
             outputStream.write(head);
             if (currFile.exists()) {
                 byte[] currToWrite = Utils.readContents(currFile);
                 outputStream.write(currToWrite);
             }
-            byte[] divide = "======= \n".getBytes();
+            byte[] divide = "=======\n".getBytes();
             outputStream.write(divide);
             if (givenFile.exists()) {
                 byte[] givenToWrite = Utils.readContents(givenFile);
                 outputStream.write(givenToWrite);
             }
-            byte[] end = ">>>>>>>".getBytes();
+            byte[] end = ">>>>>>>\n".getBytes();
             outputStream.write(end);
             byte[] toWrite = outputStream.toByteArray();
             Utils.writeContents(output, toWrite);
