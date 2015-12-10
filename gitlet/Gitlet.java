@@ -518,11 +518,14 @@ public class Gitlet implements Serializable {
             curr = Commit.shaToCommit(branchSHA);
             currSHA = branchSHA;
 
-            while (currSHA != null) {
+            while (true) {
                 if (currSHA.equals(id)) {
                     break;
                 }
                 currSHA = curr.parentSHA;
+                if (currSHA == null) {
+                    break;
+                }
                 curr = Commit.shaToCommit(curr.parentSHA);
             }
             if (currSHA != null) {
@@ -536,9 +539,18 @@ public class Gitlet implements Serializable {
 
         tree.staged = new TreeSet<String>();
         tree.removed = new TreeSet<String>();
+        getUntracked();
+        for (String name : curr.fileMap.keySet()) {
+            if (tree.untracked.contains(name)) {
+                System.out.println(
+                    "There is an untracked file in the way; delete it or add it first.");
+                return;
+            }
+        }
         for (String name : curr.fileMap.keySet()) {
             getFile(name, curr);    
         }
+
         for (String name : head.fileMap.keySet()) {
             if (!curr.fileMap.containsKey(name)) {
                 try {
