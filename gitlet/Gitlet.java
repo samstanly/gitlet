@@ -64,18 +64,19 @@ public class Gitlet implements Serializable {
         } catch (IOException e) {
             System.out.println(e);
         }
-        if (fileModified(file, name) || tree.removed.contains(name)) {
+        if (fileModified(file, name)) {
             if (tree.removed.contains(name)) {
                 tree.removed.remove(name);
-            } else {
-                tree.staged.add(name);
             }
+            tree.staged.add(name);
             try {
                 Files.copy(Paths.get(name), Paths.get(".gitlet/staged/" + name),
                         StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
                 System.out.println(e);
             }
+        } else if (tree.removed.contains(name)) {
+            tree.removed.remove(name);
         }
     }
 
@@ -188,13 +189,10 @@ public class Gitlet implements Serializable {
         }
         Commit c = new Commit(msg, headSHA);
         for (String name : tree.staged) {
-            File file = new File(name);
+            File file = new File(".gitlet/staged/" + name);
             byte[] b = Utils.readContents(file);
             String sha = Utils.sha1(b);
             c.fileMap.put(name, sha);
-            if (tree.untracked.contains(name)) {
-                tree.untracked.remove(name);
-            }
             try {
                 Files.copy(Paths.get(".gitlet/staged/" + name),
                         Paths.get(".gitlet/blobs/" + sha));
@@ -269,8 +267,8 @@ public class Gitlet implements Serializable {
                 tree.removed.add(name);
             }
         } else if (tree.staged.contains(name)) {
-            tree.staged.remove(name);
             try {
+                tree.staged.remove(name);
                 Files.delete(Paths.get(".gitlet/staged/" + name));
             } catch (IOException e) {
                 System.out.println("Cannot delete");
