@@ -25,8 +25,8 @@ public class CommitTree implements Serializable {
     protected HashSet<String> notToCommit =  new HashSet<String>();
     /** A tree map of branches and their SHAs. */
     protected TreeMap<String, String> branches = new TreeMap<String, String>();
-    /** A tree map of branches and commits made on those branches. */
-    protected TreeMap<String, String> commitHistory = new TreeMap<String, String>();
+    /** A tree map of branches and all commits ever made on those branches. */
+    protected TreeMap<String, String> commHist = new TreeMap<String, String>();
     /** A set of file names for removed. */
     protected TreeSet<String> removed = new TreeSet<String>();
     /** A set of untracked file names. */
