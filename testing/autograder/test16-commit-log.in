@@ -1,0 +1,58 @@
+# test commit features and log
+> init
+<<<
+D UID "[a-f0-9]+"
+D HEADER "Commit (${UID})"
+D DATE "\d\d\d\d-\d\d-\d\d\s+\d\d:\d\d:\d\d"
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "added wug"
+<<<
++ wug.txt notwug.txt
+> log
+===
+${HEADER}
+${DATE}
+added wug
+
+===
+${HEADER}
+${DATE}
+initial commit
+<<<*
+D INIT "${2}"
+D WUG "${1}"
+
+> reset ${WUG}
+<<<
+= wug.txt wug.txt
++ wug.txt notwug.txt
+> add wug.txt
+<<<
++ wug.txt modified.txt
+> commit "modified wug"
+<<<
+> log
+===
+${HEADER}
+${DATE}
+modified wug
+
+===
+${HEADER}
+${DATE}
+added wug
+
+===
+${HEADER}
+${DATE}
+initial commit
+<<<*
+D INIT "${3}"
+D WUG "${2}"
+D MODIFIED "${1}"
+= wug.txt modified.txt
+> reset ${MODIFIED}
+<<<
+= wug.txt notwug.txt

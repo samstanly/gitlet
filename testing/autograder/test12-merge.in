@@ -1,0 +1,28 @@
+# "the contents of one are changed and the other is deleted."
+> init
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "added wug"
+<<<
+> branch b2
+<<<
+- wug.txt
++ wug.txt modified.txt
+> add wug.txt
+<<<
+> commit "changed wug"
+<<<
+> checkout b2
+<<<
+= wug.txt wug.txt
+> rm wug.txt
+<<<
+> commit "removed wug"
+<<<
+* wug.txt
+> merge master
+Encountered a merge conflict.
+<<<
+= wug.txt emptyAndModified.txt

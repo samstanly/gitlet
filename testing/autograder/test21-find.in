@@ -1,0 +1,66 @@
+# test global log
+> init
+<<<
+D UID "[a-f0-9]+"
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "added wug"
+<<<
+D UID "[a-f0-9]+"
+D HEADER "Commit (${UID})"
+D DATE "\d\d\d\d-\d\d-\d\d\s+\d\d:\d\d:\d\d"
+> log
+===
+${HEADER}
+${DATE}
+added wug
+
+===
+${HEADER}
+${DATE}
+initial commit
+<<<*
+D INIT "${2}"
+D WUG "${1}"
+
+> find "added wug"
+(${WUG})
+<<<
++ wug2.txt wug2.txt
+> add wug2.txt
+<<<
+> commit "added wug"
+<<<
+> log
+===
+${HEADER}
+${DATE}
+added wug
+
+===
+${HEADER}
+${DATE}
+added wug
+
+===
+${HEADER}
+${DATE}
+initial commit
+<<<*
+D INIT "${3}"
+D WUG2 "${2}"
+D WUG1 "${1}"
+> find "added wug"
+(${WUG1})
+(${WUG2})
+<<<
+> reset ${WUG2}
+<<<
+> find "added wug"
+(${WUG1})
+(${WUG2})
+<<<
+> find "what is this"
+Found no commit with that message
+<<<

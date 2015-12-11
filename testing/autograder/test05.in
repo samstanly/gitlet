@@ -1,22 +1,22 @@
-# A simple test of adding, committing, modifying, and checking out.
 > init
-<<<
-> branch b2
 <<<
 + wug.txt wug.txt
 > add wug.txt
 <<<
-> commit "added wug"
-<<<
-+ wug.txt notwug.txt
-> checkout b2
+> commit "version 1 of wug.txt"
 <<<
 + wug.txt notwug.txt
 > add wug.txt
 <<<
-> commit "added wug as notwug"
+> commit "version 2 of wug.txt"
 <<<
-> merge master
-Encountered a merge conflict.
+= wug.txt notwug.txt
+# Each ${HEADER} captures its commit UID.
+D UID "[a-f0-9]+"
+D HEADER "Commit (${UID})"
+D DATE "\d\d\d\d-\d\d-\d\d\s+\d\d:\d\d:\d\d"
+> branch b1
 <<<
-= wug.txt wugNotWug.txt
++ wug_copy.txt wug.txt
+> add wug_copy.txt
+<<<

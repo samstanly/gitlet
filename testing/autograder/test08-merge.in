@@ -1,0 +1,22 @@
+# "Any files that were not present at the split point and are present only in the given branch should be checked out and staged."
+> init
+<<<
+> branch b2
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "added wug"
+<<<
+> checkout b2
+<<<
+* wug.txt
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
+> commit "added notwug"
+<<<
+> merge master
+<<<
+E wug.txt
+= wug.txt wug.txt

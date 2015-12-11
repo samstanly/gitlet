@@ -1,0 +1,125 @@
+# test global log
+> init
+<<<
+D UID "[a-f0-9]+"
+D HEADER "Commit (${UID})"
+D DATE "\d\d\d\d-\d\d-\d\d\s+\d\d:\d\d:\d\d"
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "added wug"
+<<<
++ wug.txt notwug.txt
+> add wug.txt
+<<<
+> commit "modified wug"
+<<<
+> log
+===
+${HEADER}
+${DATE}
+modified wug
+
+===
+${HEADER}
+${DATE}
+added wug
+
+===
+${HEADER}
+${DATE}
+initial commit
+<<<*
+D INIT "${3}"
+D WUG "${2}"
+D MODIFIED "${1}"
+
+> reset ${WUG}
+<<<
+> log
+===
+${HEADER}
+${DATE}
+added wug
+
+===
+${HEADER}
+${DATE}
+initial commit
+
+<<<*
+> global-log
+===
+${HEADER}
+${DATE}
+modified wug
+
+===
+${HEADER}
+${DATE}
+added wug
+
+===
+${HEADER}
+${DATE}
+initial commit
+<<<*
+> branch b2
+<<<
+> checkout b2
+<<<
++ wug2.txt wug2.txt
+> add wug2.txt
+<<<
+> commit "added wug2"
+<<<
+> log
+===
+${HEADER}
+${DATE}
+added wug2
+
+===
+${HEADER}
+${DATE}
+added wug
+
+===
+${HEADER}
+${DATE}
+initial commit
+<<<*
+> checkout master
+<<<
+> log
+===
+${HEADER}
+${DATE}
+added wug
+
+===
+${HEADER}
+${DATE}
+initial commit
+<<<*
+> global-log
+===
+${HEADER}
+${DATE}
+added wug2
+
+===
+${HEADER}
+${DATE}
+added wug
+
+===
+${HEADER}
+${DATE}
+initial commit
+
+===
+${HEADER}
+${DATE}
+modified wug
+<<<*

@@ -1,0 +1,22 @@
+# A simple test of adding, committing, modifying, and checking out.
+> init
+<<<
+> branch b2
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "added wug"
+<<<
++ wug.txt notwug.txt
+> checkout b2
+<<<
++ wug.txt notwug.txt
+> add wug.txt
+<<<
+> commit "added wug as notwug"
+<<<
+> merge master
+Encountered a merge conflict.
+<<<
+= wug.txt wugNotWug.txt

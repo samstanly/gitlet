@@ -76,6 +76,7 @@ public class Gitlet implements Serializable {
                 System.out.println(e);
             }
         } else if (tree.removed.contains(name)) {
+            tree.notToCommit.remove(name);
             tree.removed.remove(name);
         }
     }
@@ -379,10 +380,11 @@ public class Gitlet implements Serializable {
 
     /** Checkouts using file name NAME and commit id COMMITID. */
     public static void checkout(String commitID, String name) {
+        HashSet<String> seen = new HashSet<String>();
         for (String branchSHA : tree.commHist.values()) {
             Commit curr = Commit.shaToCommit(branchSHA);
             String currSHA = branchSHA;
-            while (curr.parentSHA != null) {
+            while (!seen.contains(currSHA)) {
                 if (currSHA.length() < commitID.length()) {
                     System.out.println("No commit with that id exists.");
                     return;
@@ -394,17 +396,10 @@ public class Gitlet implements Serializable {
                     return;
                 }
                 currSHA = curr.parentSHA;
+                if (currSHA == null) {
+                    break;
+                }
                 curr = Commit.shaToCommit(curr.parentSHA);
-            }
-            if (currSHA.length() < commitID.length()) {
-                System.out.println("No commit with that id exists.");
-                return;
-            }
-            if (currSHA.equals(commitID)
-                    || currSHA.substring(0, commitID.length()).equals(
-                        commitID)) {
-                getFile(name, curr);
-                return;
             }
         }
         System.out.println("No commit with that id exists.");
