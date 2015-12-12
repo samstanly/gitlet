@@ -1,9 +1,0 @@
-# adding files to gitlet
-> init
-<<<
-+ wug.txt wug.txt
-> add wug.txt
-<<<
-> add unknown.txt
-File does not exist
-<<<
